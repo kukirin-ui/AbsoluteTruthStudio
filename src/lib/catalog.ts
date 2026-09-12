@@ -1,0 +1,235 @@
+import type { AgentId, PlanId } from "./types";
+
+export type CatalogKind = "agent" | "tool";
+export type CatalogTier = "free" | "paid";
+export type CatalogWire = "mesh" | "imagine-image" | "imagine-video" | "kling" | "app";
+export type Roster = Record<AgentId, string>;
+export type Attachments = Record<AgentId, string[]>;
+
+export type CatalogItem = {
+  id: string;
+  name: string;
+  brand: string;
+  seats: AgentId[];
+  kind: CatalogKind;
+  tier: CatalogTier;
+  price: string;
+  cents: number;
+  blurb: string;
+  why: string;
+  wire: CatalogWire;
+  includedIn: PlanId[];
+  pluginId?: string;
+};
+
+export const SEAT_ORDER: AgentId[] = ["architect", "visual", "coder", "security"];
+
+export const SEAT_META: Record<
+  AgentId,
+  { label: string; role: string; framework: string; accent: string; glow: string }
+> = {
+  architect: {
+    label: "Architecture",
+    role: "Structures constraints & sequence",
+    framework: "Decompose → typed constraints → handoff brief. Never ship UI or pixels.",
+    accent: "bg-indigo",
+    glow: "rgb(99_102_241)",
+  },
+  visual: {
+    label: "Visual/UI",
+    role: "Frames, stills & motion brief",
+    framework: "DELIVERABLE · ASPECT · PROMPT · SHOTS. Identity lock; no code fences.",
+    accent: "bg-emerald",
+    glow: "rgb(16_185_129)",
+  },
+  coder: {
+    label: "Coder",
+    role: "Ships running React modules",
+    framework: "Fenced sources with paths. Working forms + localStorage. No placeholders.",
+    accent: "bg-indigo-glow",
+    glow: "rgb(129_140_248)",
+  },
+  security: {
+    label: "Verifier/Security",
+    role: "Fact-check & verdict",
+    framework: "Claim audit → WHY/FIX → VERDICT PASS|WARN. Never hide the answer.",
+    accent: "bg-warn",
+    glow: "rgb(245_158_11)",
+  },
+};
+
+export const DEFAULT_ROSTER: Roster = {
+  architect: "claude",
+  visual: "imagine",
+  coder: "chatgpt",
+  security: "grok",
+};
+
+export const DEFAULT_ATTACHMENTS: Attachments = {
+  architect: ["spec-notes"],
+  visual: ["copywriter"],
+  coder: ["tailwind-kit", "local-backend"],
+  security: ["a11y"],
+};
+
+export const CATALOG: CatalogItem[] = [
+  { id: "claude", name: "Claude", brand: "Anthropic", seats: ["architect"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Default Architect. Structures the brief before anyone else moves.", why: "Best at constraints and sequence.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+  { id: "imagine", name: "Imagine", brand: "xAI", seats: ["visual"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Default Visual. Hands you the still or the clip.", why: "Native renderer in this studio.", wire: "imagine-video", includedIn: ["free", "pro", "premium"], pluginId: "imagine-video" },
+  { id: "chatgpt", name: "ChatGPT", brand: "OpenAI", seats: ["coder"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Default Coder. Ships a running React app.", why: "Strong at UI + mock backend in one pass.", wire: "app", includedIn: ["free", "pro", "premium"], pluginId: "app-compiler" },
+  { id: "grok", name: "Grok", brand: "xAI", seats: ["security"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Default Verifier. Flags unverified claims. Never hides the answer.", why: "Keeps the mesh honest.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+  { id: "llama", name: "Llama", brand: "Meta", seats: ["architect"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Open-weight Architect. Fast structure, plain language.", why: "Swap in when you want a leaner brief.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+  { id: "gemini", name: "Gemini", brand: "Google", seats: ["architect"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Multimodal Architect. Good at mixed image + copy briefs.", why: "Use when the brief is visual from the first line.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+  { id: "mistral", name: "Mistral", brand: "Mistral", seats: ["architect"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Tight Architect. Short specs, no fluff.", why: "Cuts the brief to what Coder and Visual can ship.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+  { id: "qwen", name: "Qwen", brand: "Alibaba", seats: ["coder"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Coder for dense UI and bilingual copy.", why: "Strong when the app needs Croatian + English.", wire: "app", includedIn: ["free", "pro", "premium"] },
+  { id: "deepseek", name: "DeepSeek", brand: "DeepSeek", seats: ["coder"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Coder that prefers working forms over decoration.", why: "Swap in for CRUD-heavy apps.", wire: "app", includedIn: ["free", "pro", "premium"] },
+  { id: "grok-coder", name: "Grok Coder", brand: "xAI", seats: ["coder"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Grok in the Coder seat. Direct, no ceremony.", why: "When you want one vendor across Coder and Verifier.", wire: "app", includedIn: ["free", "pro", "premium"] },
+  { id: "grok-architect", name: "Grok Architect", brand: "xAI", seats: ["architect"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Grok in the Architect seat.", why: "Same voice from brief to verdict.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+  { id: "claude-verifier", name: "Claude Verifier", brand: "Anthropic", seats: ["security"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Cautious Verifier. Flags weakly sourced claims.", why: "Swap in for legal-adjacent copy.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+  { id: "gemini-verifier", name: "Gemini Verifier", brand: "Google", seats: ["security"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Verifier that prefers primary sources.", why: "Use when the answer cites the live web.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+  { id: "copywriter", name: "Spot Copy", brand: "Studio", seats: ["visual", "architect"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "Headline, claim, CTA on every still and clip.", why: "Ads need words on the frame.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+  { id: "spec-notes", name: "Spec Notes", brand: "Studio", seats: ["architect"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "Typed data model in the Architect pass.", why: "Stops Coder from inventing fields.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+  { id: "tailwind-kit", name: "Tailwind Kit", brand: "Studio", seats: ["coder"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "Forces Tailwind classNames in shipped apps.", why: "Preview runtime already injects Tailwind.", wire: "app", includedIn: ["free", "pro", "premium"] },
+  { id: "svg-icons", name: "SVG Icons", brand: "Studio", seats: ["visual", "coder"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "Inline SVG instead of icon fonts.", why: "Apps stay offline-complete.", wire: "app", includedIn: ["free", "pro", "premium"] },
+  { id: "seo-audit", name: "SEO Audit", brand: "Studio", seats: ["security"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "Verifier checks titles, claims, and empty meta.", why: "Landing apps need a real title.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+  { id: "a11y", name: "A11y Check", brand: "Studio", seats: ["security", "coder"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "Labels, contrast, keyboard paths on shipped UI.", why: "The app has to be usable.", wire: "app", includedIn: ["free", "pro", "premium"] },
+  { id: "json-schema", name: "JSON Schema", brand: "Studio", seats: ["architect"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "Architect emits a compact schema before Coder writes.", why: "Keeps mock backend honest.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+  { id: "local-backend", name: "Local Backend", brand: "Studio", seats: ["coder"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "localStorage CRUD in every shipped app.", why: "Data survives reload without a server.", wire: "app", includedIn: ["free", "pro", "premium"] },
+  { id: "zip-export", name: "ZIP Export", brand: "Studio", seats: ["coder"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "One-click ZIP of the live files.", why: "Take the product off this device.", wire: "app", includedIn: ["free", "pro", "premium"] },
+  { id: "prompt-memory", name: "Prompt Memory", brand: "Studio", seats: ["architect", "visual", "coder", "security"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "4,000-character standing brief per seat.", why: "Agents remember how you work.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+  { id: "markdown-docs", name: "Markdown Docs", brand: "Studio", seats: ["architect", "coder"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "Short usage notes in consensus, never as the product.", why: "User needs to know how to use what shipped.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+  { id: "brand-voice", name: "Brand Voice", brand: "Studio", seats: ["visual", "architect"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "Locks tone across still, clip, and UI copy.", why: "Four agents, one voice.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+
+  { id: "kling", name: "Kling 3.0", brand: "Kuaishou", seats: ["visual"], kind: "agent", tier: "paid", price: "$19", cents: 1900, blurb: "People, camera, physics. Premium video seat.", why: "Most-used cinematic tool for ads with faces.", wire: "kling", includedIn: ["premium"], pluginId: "kling-video" },
+  { id: "kling-pro", name: "Kling 3.0 Pro", brand: "Kuaishou", seats: ["visual"], kind: "agent", tier: "paid", price: "$20", cents: 2000, blurb: "1080p Kling. Finished spots.", why: "Premium default for the last take.", wire: "kling", includedIn: ["premium"], pluginId: "kling-video" },
+  { id: "imagine-quality", name: "Imagine Quality", brand: "xAI", seats: ["visual"], kind: "tool", tier: "paid", price: "$10", cents: 1000, blurb: "Higher-fidelity stills for hero frames.", why: "Posters that have to hold a 16:9 board.", wire: "imagine-image", includedIn: ["premium"], pluginId: "imagine-image" },
+  { id: "imagine-15", name: "Imagine Video 1.5", brand: "xAI", seats: ["visual"], kind: "tool", tier: "paid", price: "$18", cents: 1800, blurb: "720p Imagine clips with native audio.", why: "Fast iteration when Kling is not seated.", wire: "imagine-video", includedIn: ["pro", "premium"], pluginId: "imagine-video" },
+  { id: "veo", name: "Veo 3.1", brand: "Google", seats: ["visual"], kind: "agent", tier: "paid", price: "$29", cents: 2900, blurb: "Cinematic photoreal video with native sound.", why: "When the spot must look like a film still in motion.", wire: "imagine-video", includedIn: ["premium"] },
+  { id: "seedance", name: "Seedance 2.0", brand: "ByteDance", seats: ["visual"], kind: "agent", tier: "paid", price: "$24", cents: 2400, blurb: "Best image-to-video follow-through.", why: "Animate a still you already approved.", wire: "imagine-video", includedIn: ["premium"] },
+  { id: "runway", name: "Runway Gen-4", brand: "Runway", seats: ["visual"], kind: "agent", tier: "paid", price: "$28", cents: 2800, blurb: "Director control. Character consistency across shots.", why: "Multi-shot ads that must keep the same face.", wire: "imagine-video", includedIn: ["premium"] },
+  { id: "flux", name: "Flux.3", brand: "Black Forest", seats: ["visual"], kind: "agent", tier: "paid", price: "$16", cents: 1600, blurb: "Still specialist. Clean lighting, usable type.", why: "Hero posters and key visuals.", wire: "imagine-image", includedIn: ["premium"] },
+  { id: "ideogram", name: "Ideogram", brand: "Ideogram", seats: ["visual"], kind: "agent", tier: "paid", price: "$12", cents: 1200, blurb: "Best-in-class text inside the still.", why: "Logos and end cards with readable type.", wire: "imagine-image", includedIn: ["premium"] },
+  { id: "recraft", name: "Recraft", brand: "Recraft", seats: ["visual"], kind: "agent", tier: "paid", price: "$14", cents: 1400, blurb: "Brand-consistent illustration and vector.", why: "UI kits and icon systems.", wire: "imagine-image", includedIn: ["premium"] },
+  { id: "hailuo", name: "Hailuo 2.3", brand: "MiniMax", seats: ["visual"], kind: "agent", tier: "paid", price: "$15", cents: 1500, blurb: "Cheap, sharp short clips.", why: "Volume hooks on a budget.", wire: "imagine-video", includedIn: ["premium"] },
+  { id: "luma", name: "Luma Ray", brand: "Luma", seats: ["visual"], kind: "agent", tier: "paid", price: "$18", cents: 1800, blurb: "Smooth motion, fast turnaround.", why: "Product spins and B-roll.", wire: "imagine-video", includedIn: ["premium"] },
+  { id: "pika", name: "Pika", brand: "Pika", seats: ["visual"], kind: "agent", tier: "paid", price: "$12", cents: 1200, blurb: "Stylized social clips.", why: "9:16 stories and playful spots.", wire: "imagine-video", includedIn: ["premium"] },
+  { id: "live-source", name: "Live Source", brand: "Studio", seats: ["coder"], kind: "tool", tier: "paid", price: "$15", cents: 1500, blurb: "Edit the shipped files in place.", why: "You own the code, not a screenshot.", wire: "app", includedIn: ["premium"], pluginId: "live-source" },
+  { id: "spec-compiler", name: "Spec Compiler", brand: "Studio", seats: ["architect"], kind: "tool", tier: "paid", price: "$5", cents: 500, blurb: "Typed model and sequence before the others move.", why: "Fewer broken apps.", wire: "mesh", includedIn: ["premium"], pluginId: "spec-compiler" },
+  { id: "deep-audit", name: "Deep Audit", brand: "Studio", seats: ["security"], kind: "tool", tier: "paid", price: "$7", cents: 700, blurb: "Claim-level flags instead of a surface pass.", why: "When the copy will be published.", wire: "mesh", includedIn: ["premium"], pluginId: "deep-audit" },
+  { id: "github-ship", name: "GitHub Ship", brand: "GitHub", seats: ["coder"], kind: "tool", tier: "paid", price: "$9", cents: 900, blurb: "Bundle ready to push.", why: "Leave the sandbox with a repo, not a zip only.", wire: "app", includedIn: ["pro", "premium"] },
+  { id: "voice-tts", name: "Studio Voice", brand: "xAI", seats: ["visual"], kind: "tool", tier: "paid", price: "$8", cents: 800, blurb: "Voiceover notes for the clip.", why: "Ads that speak, not only move.", wire: "mesh", includedIn: ["premium"] },
+  { id: "elevenlabs", name: "Voice Cast", brand: "ElevenLabs", seats: ["visual"], kind: "tool", tier: "paid", price: "$22", cents: 2200, blurb: "Cast a voice for the finished spot.", why: "Premium audio for Premium clips.", wire: "mesh", includedIn: ["premium"] },
+  { id: "figma-code", name: "Figma to App", brand: "Figma", seats: ["coder", "architect"], kind: "tool", tier: "paid", price: "$19", cents: 1900, blurb: "Turn a layout brief into real screens.", why: "Designer-in, running app-out.", wire: "app", includedIn: ["premium"] },
+  { id: "brand-kit", name: "Brand Kit", brand: "Studio", seats: ["visual", "architect"], kind: "tool", tier: "paid", price: "$11", cents: 1100, blurb: "Locks palette, type, and logo rules on every seat.", why: "Four agents, one brand.", wire: "mesh", includedIn: ["pro", "premium"] },
+  { id: "analytics-verify", name: "Analytics Verify", brand: "Studio", seats: ["security"], kind: "tool", tier: "paid", price: "$9", cents: 900, blurb: "Verifier checks numbers before they ship.", why: "No invented metrics in consensus.", wire: "mesh", includedIn: ["premium"] },
+  { id: "priority-mesh", name: "Priority Mesh", brand: "Studio", seats: ["architect", "visual", "coder", "security"], kind: "tool", tier: "paid", price: "$25", cents: 2500, blurb: "Longer token budget. Four seats stay in lockstep.", why: "Premium consensus does not get cut off.", wire: "mesh", includedIn: ["premium"] },
+  { id: "veo-cinema", name: "Veo Cinema", brand: "Google", seats: ["visual"], kind: "tool", tier: "paid", price: "$39", cents: 3900, blurb: "4K-grade cinematic pass on the same brief.", why: "The most expensive look in the catalog.", wire: "imagine-video", includedIn: ["premium"] },
+  { id: "midjourney-hero", name: "Hero Still", brand: "Midjourney", seats: ["visual"], kind: "agent", tier: "paid", price: "$24", cents: 2400, blurb: "Art-directed stills for posters and key visuals.", why: "When the frame is the whole product.", wire: "imagine-image", includedIn: ["premium"] },
+];
+
+export function catalogById(id: string) {
+  return CATALOG.find((c) => c.id === id);
+}
+
+export function catalogForSeat(seat: AgentId) {
+  return CATALOG.filter((c) => c.seats.includes(seat));
+}
+
+export function agentsForSeat(seat: AgentId) {
+  return catalogForSeat(seat).filter((c) => c.kind === "agent");
+}
+
+export function toolsForSeat(seat: AgentId) {
+  return catalogForSeat(seat).filter((c) => c.kind === "tool");
+}
+
+export function seatedItem(roster: Roster, seat: AgentId) {
+  return catalogById(roster[seat] ?? DEFAULT_ROSTER[seat]) ?? catalogById(DEFAULT_ROSTER[seat])!;
+}
+
+export function catalogOwnKey(item: CatalogItem) {
+  return item.pluginId ?? item.id;
+}
+
+export function catalogAvailable(item: CatalogItem, plan: PlanId, owned: string[]) {
+  if (item.tier === "free") return true;
+  if (item.includedIn.includes(plan)) return true;
+  const key = catalogOwnKey(item);
+  return owned.includes(key) || owned.includes(item.id);
+}
+
+export function wireLabel(wire: CatalogWire, id?: string) {
+  const look =
+    id &&
+    ["veo", "veo-cinema", "runway", "seedance", "flux", "ideogram", "recraft", "hailuo", "luma", "pika", "midjourney-hero"].includes(
+      id,
+    );
+  switch (wire) {
+    case "kling":
+      return "Optional render plugin · attach when you want it";
+    case "imagine-video":
+      return look ? "Look pack · studio visual host" : "Studio visual host";
+    case "imagine-image":
+      return look ? "Look pack · studio stills" : "Studio stills";
+    case "app":
+      return "Live React app in the preview";
+    default:
+      return "Four-seat mesh";
+  }
+}
+
+export function normalizeRoster(raw?: Partial<Roster> | null): Roster {
+  const next: Roster = { ...DEFAULT_ROSTER };
+  for (const seat of SEAT_ORDER) {
+    const id = raw?.[seat];
+    const item = id ? catalogById(id) : undefined;
+    if (item && item.kind === "agent" && item.seats.includes(seat)) next[seat] = item.id;
+  }
+  return next;
+}
+
+export function normalizeAttachments(raw?: Partial<Attachments> | null): Attachments {
+  const next: Attachments = { architect: [], visual: [], coder: [], security: [] };
+  for (const seat of SEAT_ORDER) {
+    const list = raw?.[seat];
+    if (!Array.isArray(list)) {
+      next[seat] = [...DEFAULT_ATTACHMENTS[seat]];
+      continue;
+    }
+    next[seat] = list.filter((id) => {
+      const item = catalogById(id);
+      return Boolean(item && item.kind === "tool" && item.seats.includes(seat));
+    });
+  }
+  return next;
+}
+
+export function attachedItems(attachments: Attachments, seat: AgentId) {
+  return (attachments[seat] ?? []).map(catalogById).filter((c): c is CatalogItem => Boolean(c));
+}
+
+export function rosterPrompt(roster: Roster, attachments: Attachments) {
+  return SEAT_ORDER.map((seat) => {
+    const item = seatedItem(roster, seat);
+    const meta = SEAT_META[seat];
+    const tools = attachedItems(attachments, seat)
+      .map((t) => `${t.name} (${t.why})`)
+      .join("; ");
+    return `- ${seat.toUpperCase()} (${meta.label}) is ${item.name} by ${item.brand}. Framework: ${meta.framework} ${item.blurb}${
+      tools ? ` Attached tools: ${tools}.` : ""
+    }`;
+  }).join("\n");
+}
+
+export function hasAttached(attachments: Attachments, id: string) {
+  return SEAT_ORDER.some((seat) => (attachments[seat] ?? []).includes(id));
+}
+
+export function isSeated(roster: Roster, id: string) {
+  return SEAT_ORDER.some((seat) => roster[seat] === id);
+}
+
+export const CATALOG_COUNTS = {
+  total: CATALOG.length,
+  free: CATALOG.filter((c) => c.tier === "free").length,
+  paid: CATALOG.filter((c) => c.tier === "paid").length,
+};

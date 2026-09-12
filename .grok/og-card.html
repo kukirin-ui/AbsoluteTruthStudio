@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Absolute Truth Studio</title>
+  <style>
+    @font-face {
+      font-family: "Inter Display";
+      src: url("fonts/InterDisplay-Light.woff2") format("woff2");
+      font-weight: 300;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "Inter Display";
+      src: url("fonts/InterDisplay-Regular.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "Inter Display";
+      src: url("fonts/InterDisplay-Medium.woff2") format("woff2");
+      font-weight: 500;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "Inter Display";
+      src: url("fonts/InterDisplay-SemiBold.woff2") format("woff2");
+      font-weight: 600;
+      font-style: normal;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 1200px;
+      height: 630px;
+      overflow: hidden;
+      background: #020617;
+    }
+    .stage {
+      position: relative;
+      width: 1200px;
+      height: 630px;
+      background:
+        radial-gradient(ellipse 70% 80% at 50% 42%, rgba(99, 102, 241, 0.16) 0%, transparent 58%),
+        radial-gradient(ellipse 40% 50% at 72% 68%, rgba(16, 185, 129, 0.08) 0%, transparent 70%),
+        radial-gradient(ellipse 36% 44% at 22% 30%, rgba(99, 102, 241, 0.10) 0%, transparent 70%),
+        #020617;
+    }
+    .mesh {
+      position: absolute;
+      inset: 0;
+      width: 1200px;
+      height: 630px;
+    }
+    .vignette {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(2, 6, 23, 0.55) 0%, transparent 14%, transparent 86%, rgba(2, 6, 23, 0.55) 100%),
+        linear-gradient(180deg, rgba(2, 6, 23, 0.35) 0%, transparent 18%, transparent 82%, rgba(2, 6, 23, 0.55) 100%);
+      pointer-events: none;
+    }
+    .noise {
+      position: absolute;
+      inset: 0;
+      opacity: 0.045;
+      mix-blend-mode: overlay;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+    .panel {
+      position: absolute;
+      border-radius: 22px;
+      background: linear-gradient(165deg, rgba(232, 238, 248, 0.055) 0%, rgba(99, 102, 241, 0.045) 42%, rgba(2, 6, 23, 0.18) 100%);
+      border: 1px solid rgba(232, 238, 248, 0.10);
+      box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.45),
+        inset 0 1px 0 rgba(232, 238, 248, 0.16),
+        inset 0 -1px 0 rgba(99, 102, 241, 0.12);
+    }
+    .panel-a {
+      left: 64px;
+      top: 78px;
+      width: 268px;
+      height: 394px;
+      transform: rotate(-7.5deg);
+    }
+    .panel-b {
+      right: 72px;
+      top: 128px;
+      width: 236px;
+      height: 332px;
+      transform: rotate(6.2deg);
+    }
+    .lockup {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 780px;
+    }
+    .mark {
+      width: 72px;
+      height: 80px;
+      margin-bottom: 28px;
+      filter: drop-shadow(0 0 18px rgba(16, 185, 129, 0.35)) drop-shadow(0 0 28px rgba(99, 102, 241, 0.28));
+    }
+    h1 {
+      margin: 0;
+      font-family: "Inter Display", "Liberation Sans", sans-serif;
+      font-weight: 500;
+      font-size: 58px;
+      letter-spacing: 0.13em;
+      color: #e8eef8;
+      text-align: center;
+      line-height: 1;
+      white-space: nowrap;
+      text-shadow: 0 0 40px rgba(99, 102, 241, 0.18);
+    }
+    .studio {
+      margin: 22px 0 0 0.52em;
+      font-family: "Inter Display", "Liberation Sans", sans-serif;
+      font-weight: 400;
+      font-size: 18px;
+      letter-spacing: 0.52em;
+      color: #6366f1;
+      text-align: center;
+      line-height: 1;
+    }
+    .rule {
+      margin-top: 26px;
+      width: 72px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #10b981, transparent);
+      opacity: 0.85;
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <svg class="mesh" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="line" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#6366f1" stop-opacity="0.22"/>
+          <stop offset="50%" stop-color="#e8eef8" stop-opacity="0.10"/>
+          <stop offset="100%" stop-color="#10b981" stop-opacity="0.16"/>
+        </linearGradient>
+      </defs>
+      <g id="net"></g>
+    </svg>
+    <div class="panel panel-a"></div>
+    <div class="panel panel-b"></div>
+    <div class="vignette"></div>
+    <div class="lockup">
+      <svg class="mark" viewBox="0 0 72 80" aria-hidden="true">
+        <polygon
+          points="36,4 66,21 66,59 36,76 6,59 6,21"
+          fill="rgba(2,6,23,0.55)"
+          stroke="#6366f1"
+          stroke-width="2.2"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M22 40.5 L32 51 L52 26"
+          fill="none"
+          stroke="#10b981"
+          stroke-width="3.4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+      <h1>ABSOLUTE TRUTH</h1>
+      <p class="studio">STUDIO</p>
+      <div class="rule"></div>
+    </div>
+    <div class="noise"></div>
+  </div>
+  <script>
+    const g = document.getElementById("net");
+    const cols = 14;
+    const rows = 8;
+    const dx = 1200 / (cols - 1);
+    const dy = 630 / (rows - 1);
+    const nodes = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const jitterX = ((r * 17 + c * 31) % 9) - 4;
+        const jitterY = ((r * 13 + c * 23) % 9) - 4;
+        nodes.push({
+          x: c * dx + (r % 2 === 0 ? 0 : dx * 0.18) + jitterX,
+          y: r * dy + jitterY,
+          r, c,
+        });
+      }
+    }
+    const cx = 600, cy = 300;
+    function dist(a, b) {
+      const dx = a.x - b.x, dy = a.y - b.y;
+      return Math.hypot(dx, dy);
+    }
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const d = dist(nodes[i], nodes[j]);
+        if (d < 148) {
+          const mid = dist({ x: (nodes[i].x + nodes[j].x) / 2, y: (nodes[i].y + nodes[j].y) / 2 }, { x: cx, y: cy });
+          const op = mid < 180 ? 0.28 : mid < 320 ? 0.16 : 0.07;
+          const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          line.setAttribute("x1", nodes[i].x);
+          line.setAttribute("y1", nodes[i].y);
+          line.setAttribute("x2", nodes[j].x);
+          line.setAttribute("y2", nodes[j].y);
+          line.setAttribute("stroke", "url(#line)");
+          line.setAttribute("stroke-width", mid < 200 ? "1.1" : "0.7");
+          line.setAttribute("opacity", String(op));
+          g.appendChild(line);
+        }
+      }
+    }
+    nodes.forEach((n, idx) => {
+      const d = dist(n, { x: cx, y: cy });
+      const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      circle.setAttribute("cx", n.x);
+      circle.setAttribute("cy", n.y);
+      const special = idx === 58 || idx === 45 || idx === 72;
+      circle.setAttribute("r", d < 90 ? 2.4 : special ? 2.2 : 1.35);
+      if (d < 70) {
+        circle.setAttribute("fill", "#10b981");
+        circle.setAttribute("opacity", "0.9");
+      } else if (special || d < 180) {
+        circle.setAttribute("fill", "#6366f1");
+        circle.setAttribute("opacity", "0.7");
+      } else {
+        circle.setAttribute("fill", "#e8eef8");
+        circle.setAttribute("opacity", "0.22");
+      }
+      g.appendChild(circle);
+    });
+  </script>
+</body>
+</html>

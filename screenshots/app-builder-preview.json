@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Absolute Truth Studio",
+      "hasCanvas": false,
+      "bodyTextLen": 942,
+      "bodyTextHash": "e9b9b888b82e91721c6a324ce4b9f8164b82aa918a7b58058cf9ee57652561f3",
+      "bodyTextPrefix": "Absolute Truth STUDIO Memory Plugins Free OWNER New session SAVE",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Absolute Truth Studio",
+      "hasCanvas": false,
+      "bodyTextLen": 717,
+      "bodyTextHash": "b47c6c8a5e3ed3cb0d510734bec150e9c44c6a6adff1cec8b5459c35d4d33769",
+      "bodyTextPrefix": "Absolute Truth STUDIO OWNER Talk to Me Build Asset Save CLAUDE A",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-preview.json"
+}
