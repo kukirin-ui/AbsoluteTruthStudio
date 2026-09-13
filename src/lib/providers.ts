@@ -26,6 +26,42 @@ export const MESH_PROVIDERS: readonly MeshProvider[] = [
 
 export type OutputPower = "low" | "mid" | "max";
 
+/** How to get the best out of each model — shown when you open an agent. */
+export const PROVIDER_GUIDE: Record<MeshProvider, { title: string; tips: string[] }> = {
+  anthropic: {
+    title: "Prompting Claude",
+    tips: [
+      "State the constraints and the shape of the answer up front.",
+      "Ask for a plan or spec before any code.",
+      "Define what 'done' looks like — it reasons hardest with a clear target.",
+    ],
+  },
+  openai: {
+    title: "Prompting GPT",
+    tips: [
+      "Be explicit about the output format you want back.",
+      "Strong on step-by-step and typed tool/function tasks.",
+      "Ask for surgical diffs on existing code, not full rewrites.",
+    ],
+  },
+  google: {
+    title: "Prompting Gemini",
+    tips: [
+      "Attach the image or video — it grounds the brief on what it sees.",
+      "Best when the brief is visual from the first line.",
+      "Ask it to generate or edit a still in-line.",
+    ],
+  },
+  xai: {
+    title: "Prompting Grok",
+    tips: [
+      "Ask it to check claims against live X and the web.",
+      "Direct and current — name exactly what to verify.",
+      "Best for real-time facts and fresh sources.",
+    ],
+  },
+};
+
 /** Map a catalog agent id (or brand) that can sit the lead seat to its provider. */
 export function providerForAgentId(agentId: string): MeshProvider {
   const id = String(agentId || "").toLowerCase();

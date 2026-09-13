@@ -15,7 +15,7 @@ import {
 } from "@/lib/catalog";
 import { seatUiLabel } from "@/lib/mesh";
 import type { PluginWallet } from "@/lib/plugins";
-import { providerForAgentId, type OutputPower } from "@/lib/providers";
+import { PROVIDER_GUIDE, providerForAgentId, type OutputPower } from "@/lib/providers";
 import { tierOptionsForPlan, type ModelTier } from "@/lib/tiers";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -262,7 +262,9 @@ function SeatPicker({
   const agents = agentsForSeat(seat);
   const tools = toolsForSeat(seat);
   const attached = new Set(attachments[seat] ?? []);
-  const tierOptions = tierOptionsForPlan(providerForAgentId(current.id), plan);
+  const leadProvider = providerForAgentId(current.id);
+  const tierOptions = tierOptionsForPlan(leadProvider, plan);
+  const guide = PROVIDER_GUIDE[leadProvider];
 
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
@@ -308,6 +310,17 @@ function SeatPicker({
             </p>
           </div>
         ) : null}
+        <div className="mb-5 rounded-lg bg-elevated/50 p-3">
+          <p className="mb-1.5 text-[10px] tracking-wider text-indigo-glow uppercase">{guide.title}</p>
+          <ul className="space-y-1">
+            {guide.tips.map((tip) => (
+              <li key={tip} className="flex gap-2 text-[11px] leading-snug text-muted">
+                <span className="mt-1 size-1 shrink-0 rounded-full bg-indigo-glow/70" />
+                <span>{tip}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
         <p className="mb-2 text-[10px] tracking-wider text-subtle uppercase">Agents</p>
         <ul className="mb-5 space-y-1.5">
           {agents.map((item) => (
