@@ -313,7 +313,7 @@ export function StudioApp({
           error: "Included stills used. Pro includes Imagine stills.",
         };
       }
-      let asset: MediaAsset = {
+      const asset: MediaAsset = {
         kind: "image",
         status: "rendering",
         prompt: opts.prompt,

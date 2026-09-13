@@ -399,7 +399,8 @@ export function BillingDrawer({
             </Button>
           </form>
         )}
-        {false && foundingAvailable && onFounding ? null : null}
+        {/* Founding-referral CTA is intentionally hidden; props stay wired for a future re-enable. */}
+        {foundingAvailable && onFounding ? null : null}
         <div className="space-y-3">
           {PLANS.map((p) => {
             const current = p.id === plan;
