@@ -17,6 +17,7 @@ import {
   anthropicDataToOpenAi,
   buildChatFetch,
   powerParams,
+  providerForAgentId,
   resolveLeadRouting,
   type OutputPower,
 } from "@/lib/providers";
@@ -149,11 +150,16 @@ export const Route = createFileRoute("/api/mesh")({
           return jsonError(500, "Internal server error", "INTERNAL_ERROR");
         }
 
-        // Hard-stop unpaid: credits=0 AND no xAI BYOK → 402 PAYMENT_REQUIRED.
-        // Non-xAI BYOK alone does NOT fund owner-key mesh.
+        // Lead provider = who sits the Architect seat; it drives which real model
+        // the run calls, which owner/BYOK key funds it, and the funding check.
+        const roster = normalizeRoster(body.roster);
+        const leadProvider = providerForAgentId(roster.architect);
+
+        // Funded by credits OR the user's own BYOK key for the lead provider
+        // (their own key for any model — including ones beyond the four seats).
         let creditCents = 0;
         try {
-          const funding = await assertMeshFunding(userId);
+          const funding = await assertMeshFunding(userId, leadProvider);
           creditCents = funding.creditCents;
         } catch (err) {
           if (err instanceof MeshPaymentRequiredError) {
@@ -205,19 +211,21 @@ export const Route = createFileRoute("/api/mesh")({
             );
           }
         } else {
+          // BYOK path: use the user's own key for the lead provider — never an
+          // owner key. Works for any provider (xai/openai/anthropic/google).
           const {
             decryptByokForAdapter,
             ByokNotConfiguredError,
             ByokDecryptError,
           } = await import("@/lib/auth/byok-credentials.server");
           try {
-            apiKey = await decryptByokForAdapter(userId, "xai");
+            apiKey = await decryptByokForAdapter(userId, leadProvider);
             if (!apiKey) {
               return jsonError(
                 402,
-                "Payment required: add credits or connect an xAI BYOK key",
+                `Payment required: add credits or connect a ${leadProvider} BYOK key`,
                 "PAYMENT_REQUIRED",
-                { creditCents: 0, hasByokXai: false },
+                { creditCents: 0, hasByokLead: false },
               );
             }
           } catch (err) {
@@ -231,9 +239,9 @@ export const Route = createFileRoute("/api/mesh")({
               });
               return jsonError(
                 402,
-                "Payment required: add credits or reconnect xAI BYOK",
+                `Payment required: add credits or reconnect your ${leadProvider} key`,
                 "PAYMENT_REQUIRED",
-                { creditCents: 0, hasByokXai: true },
+                { creditCents: 0, hasByokLead: true },
               );
             }
             console.error("[mesh] BYOK resolve failed", {
@@ -241,7 +249,7 @@ export const Route = createFileRoute("/api/mesh")({
             });
             return jsonError(
               402,
-              "Payment required: add credits or connect an xAI BYOK key",
+              "Payment required: add credits or connect a BYOK key",
               "PAYMENT_REQUIRED",
               { creditCents: 0 },
             );
@@ -251,7 +259,6 @@ export const Route = createFileRoute("/api/mesh")({
         const duration =
           typeof body.duration === "number" && body.duration > 0 ? Math.min(60, Math.round(body.duration)) : undefined;
 
-        const roster = normalizeRoster(body.roster);
         const attachments = normalizeAttachments(body.attachments);
         const kling = plan === "premium" || roster.visual === "kling" || roster.visual === "kling-pro";
         const priority = (attachments.architect ?? []).includes("priority-mesh");
@@ -292,14 +299,18 @@ export const Route = createFileRoute("/api/mesh")({
           activeSeats,
         });
 
-        // Real frontier providers run only when funded by credits (owner keys).
-        // The BYOK-only path stays on the xAI key it already resolved. When the
-        // selected lead provider is not fully configured we fall back to xAI, so
-        // the live mesh never breaks on a missing key or model.
+        // Credits → owner keys resolved per provider (xAI fallback if the owner
+        // has no key for that provider). BYOK → the user's own key for the lead
+        // provider, routed straight to that provider (no owner-key fallback).
         const fundedByCredits = creditCents > 0;
         const routing = fundedByCredits
           ? resolveLeadRouting(roster.architect)
-          : ({ kind: "fallback", reason: "byok xai-only" } as const);
+          : ({
+              kind: "provider" as const,
+              provider: leadProvider,
+              model: resolveMeshModel(leadProvider, plan, body.tier),
+              apiKey: (apiKey ?? "") as string,
+            });
 
         // Per-plan tier → exact model id (Premium=highest, Pro=few-below, Free=basic;
         // a client-sent downgrade is clamped to the plan ceiling).
@@ -344,8 +355,9 @@ export const Route = createFileRoute("/api/mesh")({
         try {
           upstream = await callUpstream(req);
         } catch {
-          // A real-provider network failure must not kill the mesh — retry on xAI.
-          if (routing.kind === "provider" && apiKey) {
+          // A real-provider network failure must not kill the mesh — retry on the
+          // owner xAI key, but only on the credits path (never reuse a BYOK key).
+          if (fundedByCredits && routing.kind === "provider") {
             try {
               upstream = await callUpstream(xaiFallback());
             } catch {
@@ -362,9 +374,9 @@ export const Route = createFileRoute("/api/mesh")({
           }
         }
 
-        // A real-provider error (bad model/key/rate) also retries on xAI so a
-        // deployed misconfig degrades gracefully instead of failing the turn.
-        if ((!upstream.ok || !upstream.body) && routing.kind === "provider" && apiKey) {
+        // A real-provider error (bad model/key/rate) also retries on the owner
+        // xAI key — credits path only, so a BYOK key is never sent to xAI.
+        if ((!upstream.ok || !upstream.body) && fundedByCredits && routing.kind === "provider") {
           const retry = await callUpstream(xaiFallback()).catch(() => null);
           if (retry && retry.ok && retry.body) {
             return new Response(retry.body, {

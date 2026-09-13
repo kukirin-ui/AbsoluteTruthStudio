@@ -20,7 +20,7 @@
  */
 export const MESH_STUDIO_TURN_CENTS = 1;
 
-export type ByokProvider = "openai" | "anthropic" | "xai";
+export type ByokProvider = "openai" | "anthropic" | "xai" | "google";
 
 /**
  * Pure decision: credits > 0 OR hasByokXai ⇒ allow.
@@ -86,16 +86,17 @@ export async function hasByokCredential(
 
 /**
  * Resolve credit balance + BYOK existence and hard-stop when neither funds mesh.
- * Funding allow = credits > 0 OR hasByokXai (not any-provider BYOK).
+ * Funding allow = credits > 0 OR the user holds a BYOK key for the lead provider
+ * (their own key for whatever model sits the lead seat — any provider).
  * Does not debit. Does not decrypt BYOK.
- *
- * Residual: route must decrypt xAI BYOK (or debit + owner key). Presence of a
- * non-xAI BYOK row alone does NOT authorize owner XAI_API_KEY.
  */
-export async function assertMeshFunding(userId: string): Promise<{
+export async function assertMeshFunding(
+  userId: string,
+  leadProvider: ByokProvider = "xai",
+): Promise<{
   creditCents: number;
   hasByok: boolean;
-  hasByokXai: boolean;
+  hasByokLead: boolean;
 }> {
   const { getSql } = await import("@/lib/db");
   const { ensureFreeEntitlement } = await import(
@@ -115,9 +116,9 @@ export async function assertMeshFunding(userId: string): Promise<{
     limit 8
   `;
   const hasByok = byokAny.length > 0;
-  const hasByokXai = byokAny.some((r) => r.provider === "xai");
+  const hasByokLead = byokAny.some((r) => r.provider === leadProvider);
 
-  const decision = decideMeshFunding(creditCents, hasByokXai);
+  const decision = decideMeshFunding(creditCents, hasByokLead);
   if (!decision.allow) {
     throw new MeshPaymentRequiredError({
       creditCents: decision.creditCents,
@@ -128,6 +129,6 @@ export async function assertMeshFunding(userId: string): Promise<{
   return {
     creditCents: decision.creditCents,
     hasByok,
-    hasByokXai,
+    hasByokLead,
   };
 }
