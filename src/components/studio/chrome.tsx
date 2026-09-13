@@ -75,18 +75,18 @@ export function HeaderBar({
     setOwner(readOwner());
   }, []);
   return (
-    <header className="relative z-20 flex items-center gap-3 px-3 py-2.5 md:px-4">
-      <div className="flex items-center gap-2">
+    <header className="relative z-20 flex items-center gap-2 px-3 py-2.5 md:gap-3 md:px-4">
+      <div className="flex shrink-0 items-center gap-2">
         {leftSlot}
         <Link to="/" className="rounded-md">
           <Wordmark />
         </Link>
       </div>
-      <div className="ml-auto flex items-center gap-2">
+      <div className="ml-auto flex min-w-0 items-center justify-end gap-1.5 overflow-x-auto [scrollbar-width:none] md:gap-2 [&::-webkit-scrollbar]:hidden">
         <button
           type="button"
           onClick={onOpenPlans}
-          className="inline-flex h-10 items-center gap-2 rounded-full bg-elevated px-3 text-xs text-muted transition-[background-color,color] duration-150 hover:text-fg"
+          className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full bg-elevated px-3 text-xs text-muted transition-[background-color,color] duration-150 hover:text-fg"
           title="Studio credits for metered model calls — not an included subscription API buffer"
         >
           <Wallet className="size-3.5 text-indigo-glow" />
@@ -104,7 +104,7 @@ export function HeaderBar({
           <button
             type="button"
             onClick={onOpenByok}
-            className="inline-flex h-10 items-center gap-2 rounded-full bg-elevated px-3 text-xs text-muted transition-[background-color,color] duration-150 hover:text-fg"
+            className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full bg-elevated px-3 text-xs text-muted transition-[background-color,color] duration-150 hover:text-fg"
             title="Bring your own provider API keys"
           >
             <KeyRound className="size-3.5 text-indigo-glow" />
@@ -115,7 +115,7 @@ export function HeaderBar({
           <button
             type="button"
             onClick={onOpenMemory}
-            className="inline-flex h-10 items-center gap-2 rounded-full bg-elevated px-3 text-xs text-muted transition-[background-color,color] duration-150 hover:text-fg"
+            className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full bg-elevated px-3 text-xs text-muted transition-[background-color,color] duration-150 hover:text-fg"
           >
             <Brain className="size-3.5 text-indigo-glow" />
             <span className="hidden sm:inline">Memory</span>
@@ -124,7 +124,7 @@ export function HeaderBar({
         <button
           type="button"
           onClick={onOpenPlugins}
-          className="inline-flex h-10 items-center gap-2 rounded-full bg-elevated px-3 text-xs text-muted transition-[background-color,color] duration-150 hover:text-fg"
+          className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full bg-elevated px-3 text-xs text-muted transition-[background-color,color] duration-150 hover:text-fg"
         >
           <Puzzle className="size-3.5 text-indigo-glow" />
           <span className="hidden sm:inline">Plugins</span>
@@ -132,7 +132,7 @@ export function HeaderBar({
         <button
           type="button"
           onClick={onOpenPlans}
-          className="inline-flex h-10 items-center gap-2 rounded-full bg-elevated px-3 text-xs text-muted transition-[background-color,color] duration-150 hover:text-fg"
+          className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full bg-elevated px-3 text-xs text-muted transition-[background-color,color] duration-150 hover:text-fg"
         >
           <Shield className="size-3.5 text-emerald-glow" />
           <span className="hidden sm:inline" suppressHydrationWarning>

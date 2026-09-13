@@ -8,20 +8,24 @@ export const Route = createFileRoute("/faq")({
 
 const FAQS = [
   {
-    q: "If I ask for an app, do I get a real app?",
-    a: "Yes. The Coder seat ships a React application — screens, frontend, and a working mock backend — into the live preview. Not an HTML poster. Export ZIP if you want the source.",
+    q: "What is Absolute Truth Studio?",
+    a: "An elite workbench where four frontier agents — Claude, ChatGPT, Gemini, and Grok — work one brief in lockstep and hand you a verified answer or a real, running React app. It is built for people who already use Claude Code plus plugins and want the highest possible output from one place.",
   },
   {
-    q: "Is video included on Free?",
-    a: "No. Free is multi-agent eval only (Talk to Me, attach, memory, baseline seats). Video and other render plugins are Pro+ optional paths with credits — never the product headline.",
+    q: "If I ask for an app, do I get a real app?",
+    a: "Yes. The Coder seat ships a React application — screens, frontend, and a working mock backend — into the live preview. Not an HTML poster. Export ZIP, Sync, or push to GitHub for the source.",
+  },
+  {
+    q: "How do I pay for the model calls?",
+    a: "Two ways, on any plan. Buy studio credits and we bill real usage at a 1.3× rate — a small margin, never a meter trap. Or bring your own keys (BYOK): connect your Anthropic / OpenAI / Google / xAI keys and run on your own accounts at cost, with no markup.",
+  },
+  {
+    q: "Can I run fewer than four agents, or pick the model level?",
+    a: "Yes. Choose how many of the four seats run (1 to 4) and who sits each one. Each seat has a tier selector — Free runs a basic tier, Pro a few tiers up with per-seat control, and Premium the highest tier known today. An output-power control (low / mid / max) sets how hard the seats push.",
   },
   {
     q: "What is agent memory?",
     a: "Open Memory in the header. Each seat can hold a standing prompt up to 4,000 characters. It is stored only on this device and applied every turn.",
-  },
-  {
-    q: "How do referrals work?",
-    a: "Share your /r/ link. Referral rewards apply after a referred buyer activates a paid Pro or Premium plan via Stripe. List prices stay $19/mo Pro and $49/mo Premium — no crypto checkout.",
   },
   {
     q: "Do the agents introduce themselves every turn?",

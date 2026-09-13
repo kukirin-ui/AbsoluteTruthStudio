@@ -5,7 +5,6 @@ export const SITE_NAV = [
   { to: "/plugins", label: "Plugins" },
   { to: "/pricing", label: "Pricing" },
   { to: "/ship", label: "Ship" },
-  { to: "/referrals", label: "Referrals" },
   { to: "/faq", label: "FAQ" },
   { to: "/privacy", label: "Privacy" },
   { to: "/terms", label: "Terms" },
