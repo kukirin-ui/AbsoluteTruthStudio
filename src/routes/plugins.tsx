@@ -15,15 +15,14 @@ function PluginsPage() {
   return (
     <SiteShell title="Agents and tools" kicker={`${CATALOG_COUNTS.total} in the catalog`}>
       <p>
-        {CATALOG_COUNTS.free} free and {CATALOG_COUNTS.paid} paid. Click any of the four seats in the studio, tap
-        Change, and swap who sits there. Attach tools to the seats they support. The four live seats always pass
-        the brief between them — that is the product.
+        {CATALOG_COUNTS.free} free and {CATALOG_COUNTS.paid} paid. Open any of the four seats, choose who sits
+        there, and attach the tools it supports. The seats carry the brief between them and cross-check the result —
+        that is the product.
       </p>
       <p className="text-sm text-muted">
-        Defaults stay Claude, Imagine, ChatGPT, and Grok until you change them. Real render hosts are Imagine
-        (XAI_API_KEY) and Kling (only if Kling/Fal keys exist). Look packs (Veo, Runway, Flux, Ideogram, …) change
-        the brief and still render on those hosts — they are not separate vendor APIs. Mesh seats (Claude, ChatGPT,
-        Llama, Gemini) are role prompts on Grok 4.5. The four live seats always pass the brief.
+        Each seat runs a real frontier model — Claude, ChatGPT, Gemini, or Grok — routed to that provider on your
+        credits or your own key (BYOK). Agent-native plugins are tuned to what each model does best; attach the ones
+        you need. Nothing is forced into a plan, and you can combine any models with any plugins.
       </p>
       <h2 className="font-display text-lg text-fg">Free — {free.length}</h2>
       <CatalogList items={free} />

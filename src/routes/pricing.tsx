@@ -12,16 +12,16 @@ function PricingPage() {
   return (
     <SiteShell title="Pricing" kicker="Free · Pro $19 · Premium $49">
       <p>
-        One thing decides the plan: how high a tier the four seats — Claude, ChatGPT, Gemini, Grok — get to run.
-        Free is a basic tier on us. Pro steps up a few tiers with per-seat control. Premium runs the highest tier
-        known today, kept current. On every plan you choose how many of the four agents run and which level each
-        one spends.
+        Your plan sets one thing: how high a <span className="text-fg">tier</span> your agents may reach. The basic
+        tier lets you try the mesh, Pro sits a few tiers below the top, and Premium runs the highest tier available
+        today — kept current as the frontier moves. On every plan you choose how many agents run (1 to 4) and can
+        downgrade any seat by its exact model name.
       </p>
       <p>
-        Two ways to pay for the model calls, on any plan: buy <span className="text-fg">studio credits</span>
-        {" "}(billed at a 1.3× rate on real usage — a small margin, never a meter trap), or use{" "}
-        <span className="text-fg">BYOK</span> and connect your own Anthropic / OpenAI / Google / xAI keys to run at
-        cost with no markup. Stripe-only for the subscription. After checkout, tap Activate on this device.
+        Run the models two ways, on any plan: buy <span className="text-fg">studio credits</span> for one-click
+        access, or use <span className="text-fg">BYOK</span> — connect your own keys and run <span className="text-fg">any</span>
+        {" "}model on your own accounts, including ones beyond the main four. Combine any models with any plugin, with
+        no limits. Stripe-only for the subscription; tap Activate after checkout.
       </p>
       <div className="grid gap-3 sm:grid-cols-3">
         {PLANS.map((p) => (

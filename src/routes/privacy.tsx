@@ -10,15 +10,18 @@ function PrivacyPage() {
   return (
     <SiteShell title="Privacy" kicker="On-device by design">
       <p>
-        Absolute Truth Studio does not persist chats, projects, or billing entitlements on a server. Saved work lives
-        in this browser. Share links encode a snapshot you choose to copy.
+        Your work stays yours. Chats, projects, and entitlements live in this browser — not on our servers. A share
+        link only encodes the snapshot you choose to copy.
       </p>
       <p>
-        Mesh requests send only the prompt and recent turns needed to answer. Image and video renders send only
-        the Imagine brief. No account is required. You can delete any chat or project from the library at any
-        time.
+        A run sends only the prompt and the recent turns needed to answer it to the model that serves your seat.
+        With BYOK, that request goes to your own provider account. No sign-up is required to work, and you can
+        delete any chat or project at any time.
       </p>
-      <p>We do not sell personal data. There are no third-party ad trackers in the studio shell.</p>
+      <p>
+        We do not sell personal data, and there are no third-party ad trackers in the studio. Provider keys you add
+        are encrypted at rest and never shown back to the browser.
+      </p>
     </SiteShell>
   );
 }

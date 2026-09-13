@@ -1,13 +1,8 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
+// Legacy short links now just open the studio.
 export const Route = createFileRoute("/r/$code")({
-  beforeLoad: ({ params }) => {
-    throw redirect({
-      to: "/",
-      search: { ref: params.code },
-    });
-  },
-  component: function ReferralRedirect() {
-    return null;
+  beforeLoad: () => {
+    throw redirect({ to: "/" });
   },
 });

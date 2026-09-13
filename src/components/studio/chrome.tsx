@@ -79,10 +79,15 @@ export function HeaderBar({
       <div className="flex shrink-0 items-center gap-2">
         {leftSlot}
         <Link to="/" className="rounded-md">
-          <Wordmark />
+          <span className="sm:hidden">
+            <Wordmark compact />
+          </span>
+          <span className="hidden sm:block">
+            <Wordmark />
+          </span>
         </Link>
       </div>
-      <div className="ml-auto flex min-w-0 items-center justify-end gap-1.5 overflow-x-auto [scrollbar-width:none] md:gap-2 [&::-webkit-scrollbar]:hidden">
+      <div className="ml-auto flex min-w-0 items-center gap-1.5 overflow-x-auto [scrollbar-width:none] md:gap-2 [&::-webkit-scrollbar]:hidden">
         <button
           type="button"
           onClick={onOpenPlans}
@@ -200,6 +205,31 @@ export function Library({
         <Plus />
         New session
       </Button>
+
+      {conversations.length === 0 && projects.length === 0 ? (
+        <section className="rounded-xl bg-panel p-3.5 shadow-[0_0_0_1px_rgb(99_102_241/0.14)]">
+          <p className="text-[10px] font-medium tracking-[0.16em] text-indigo-glow uppercase">
+            Four minds, one brief
+          </p>
+          <ul className="mt-2.5 space-y-2 text-xs leading-snug text-muted">
+            <li className="flex gap-2">
+              <span className="mt-1 size-1.5 shrink-0 rounded-full bg-indigo-glow/80" />
+              <span>Claude, ChatGPT, Gemini &amp; Grok cross-check every answer.</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="mt-1 size-1.5 shrink-0 rounded-full bg-emerald/80" />
+              <span>Get a real, running React app — not a mockup.</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="mt-1 size-1.5 shrink-0 rounded-full bg-indigo/80" />
+              <span>Set each model's tier, run 1–4 agents, or bring your own keys.</span>
+            </li>
+          </ul>
+          <p className="mt-3 border-t border-border pt-2.5 text-[11px] text-subtle">
+            Ask anything to begin — every session saves right here.
+          </p>
+        </section>
+      ) : null}
 
       <section>
         <p className="mb-2 flex items-center gap-2 text-[10px] font-medium tracking-[0.16em] text-subtle uppercase">
@@ -321,15 +351,11 @@ export function BillingDrawer({
   onOpenChange,
   plan,
   onGrant,
-  foundingAvailable = false,
-  onFounding,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   plan: PlanId;
   onGrant: (plan: PlanId) => void;
-  foundingAvailable?: boolean;
-  onFounding?: () => void;
 }) {
   const owner = readOwner();
   const [ownerCode, setOwnerCode] = useState("");
@@ -370,8 +396,8 @@ export function BillingDrawer({
       <SheetContent side="right" title="Plans" className="left-auto right-0 w-[min(100%,26rem)]">
         <p className="mb-5 text-sm text-muted">
           {owner
-            ? "Owner mode. Every plan and plugin is seated for you. Visitors stay on Free unless they pay Stripe. Revenue lands on the Absolute Truth Studio Stripe account after fees. Host keys cover Imagine and Kling cost — included clips are a cap so a visitor cannot drain you."
-            : "Stripe is live. Free stays free. Pro and Premium are monthly subscriptions — tap Stripe checkout, then Activate after payment."}
+            ? "Owner mode — every tier and plugin is unlocked for you. Visitors start on the basic tier and unlock Pro or Premium through Stripe, or bring their own keys."
+            : "Pro and Premium are monthly subscriptions billed through Stripe. Tap checkout, then Activate on this device. You can also bring your own keys (BYOK) on any plan."}
         </p>
         {owner ? null : (
           <form
@@ -399,8 +425,6 @@ export function BillingDrawer({
             </Button>
           </form>
         )}
-        {/* Founding-referral CTA is intentionally hidden; props stay wired for a future re-enable. */}
-        {foundingAvailable && onFounding ? null : null}
         <div className="space-y-3">
           {PLANS.map((p) => {
             const current = p.id === plan;

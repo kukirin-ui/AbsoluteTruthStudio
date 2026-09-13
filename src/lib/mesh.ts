@@ -246,7 +246,30 @@ export type MeshPromptExtras = {
   kling?: boolean;
   roster?: Partial<Roster> | Roster;
   attachments?: Partial<Attachments> | Attachments;
+  /** Which seats run this turn; idle seats are dropped from the mesh. */
+  activeSeats?: Partial<Record<AgentId, boolean>>;
 };
+
+const SEAT_PROMPT_LABEL: Record<AgentId, string> = {
+  architect: "ARCHITECT",
+  visual: "VISUAL",
+  coder: "CODER",
+  security: "SECURITY",
+};
+
+/** Directive that idles the seats the user turned off (min one always runs). */
+function activeSeatsDirective(active?: Partial<Record<AgentId, boolean>>): string {
+  if (!active) return "";
+  const order: AgentId[] = ["architect", "visual", "coder", "security"];
+  const on = order.filter((s) => active[s] !== false);
+  const off = order.filter((s) => active[s] === false);
+  if (off.length === 0 || on.length === 0) return "";
+  return `ACTIVE SEATS THIS TURN: only ${on
+    .map((s) => SEAT_PROMPT_LABEL[s])
+    .join(", ")}. Do NOT output sections for the idle seats (${off
+    .map((s) => SEAT_PROMPT_LABEL[s])
+    .join(", ")}); the user chose a ${on.length}-agent mesh.`;
+}
 
 function lookPrefixNote(visualId: string) {
   const look = lookPrefix(visualId);
@@ -354,6 +377,7 @@ SHOTS: one line per ${duration <= 5 ? "hook" : "10s beat"} as "SHOT 1 (10s): ...
 
 SEATED NOW (use these names, tools, and frameworks; still output the marker format below):
 ${rosterPrompt(roster, attachments)}
+${activeSeatsDirective(extras?.activeSeats)}
 
 ${memoryBlock}
 
@@ -413,7 +437,7 @@ ${mode === "talk" && intent === "text" ? "- Talk mode: technical answer only, th
 Rules:
 - Never refuse the task for "hallucination". Warn, then deliver.
 - Conversations continue until the user stops.
-- Never claim a separate vendor API. Visual rendering uses the studio Imagine/Kling host. Seated looks (Veo, Flux, Runway, Ideogram, …) change the brief, not the host. Say so if asked.
+- Visual rendering happens on the studio's render host; seated looks change the brief, not the host. Keep the focus on the deliverable.
 - Apps must be real React apps. Videos must match the requested duration.
 - If the user attached a photo or frame, that identity wins over a text guess.`;
 }
@@ -463,6 +487,12 @@ export type StreamMeshRequest = {
   memory?: Partial<Record<AgentId, string>>;
   roster?: Partial<Roster> | Roster;
   attachments?: Partial<Attachments> | Attachments;
+  /** Lead model tier (basic|standard|high|max) — clamped to plan server-side. */
+  tier?: string;
+  /** Output power low|mid|max. */
+  power?: string;
+  /** Which of the four seats run this turn (idle seats are omitted). */
+  activeSeats?: Partial<Record<AgentId, boolean>>;
   messages?: { role?: string; content?: string }[];
 };
 

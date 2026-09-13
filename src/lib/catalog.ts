@@ -66,19 +66,19 @@ export const DEFAULT_ROSTER: Roster = {
 };
 
 export const DEFAULT_ATTACHMENTS: Attachments = {
-  architect: ["spec-notes"],
-  visual: ["copywriter"],
-  coder: ["tailwind-kit", "local-backend"],
-  security: ["a11y"],
+  architect: ["spec-notes", "claude-deepthink"],
+  visual: ["copywriter", "gemini-image"],
+  coder: ["tailwind-kit", "local-backend", "gpt-canvas"],
+  security: ["a11y", "grok-live-search"],
 };
 
 export const CATALOG: CatalogItem[] = [
-  { id: "claude", name: "Claude", brand: "Anthropic", seats: ["architect"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Default Architect. Structures the brief before anyone else moves.", why: "Best at constraints and sequence.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+  { id: "claude", name: "Claude Opus 5", brand: "Anthropic", seats: ["architect"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Default Architect. Structures the brief before anyone else moves.", why: "Best at constraints and sequence.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
   { id: "imagine", name: "Imagine", brand: "xAI", seats: ["visual"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Default Visual. Hands you the still or the clip.", why: "Native renderer in this studio.", wire: "imagine-video", includedIn: ["free", "pro", "premium"], pluginId: "imagine-video" },
-  { id: "chatgpt", name: "ChatGPT", brand: "OpenAI", seats: ["coder"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Default Coder. Ships a running React app.", why: "Strong at UI + mock backend in one pass.", wire: "app", includedIn: ["free", "pro", "premium"], pluginId: "app-compiler" },
-  { id: "grok", name: "Grok", brand: "xAI", seats: ["security"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Default Verifier. Flags unverified claims. Never hides the answer.", why: "Keeps the mesh honest.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+  { id: "chatgpt", name: "GPT-6 Astra", brand: "OpenAI", seats: ["coder"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Default Coder. Ships a running React app.", why: "Strong at UI + mock backend in one pass.", wire: "app", includedIn: ["free", "pro", "premium"], pluginId: "app-compiler" },
+  { id: "grok", name: "Grok 4.6", brand: "xAI", seats: ["security"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Default Verifier. Flags unverified claims. Never hides the answer.", why: "Keeps the mesh honest.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
   { id: "llama", name: "Llama", brand: "Meta", seats: ["architect"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Open-weight Architect. Fast structure, plain language.", why: "Swap in when you want a leaner brief.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
-  { id: "gemini", name: "Gemini", brand: "Google", seats: ["architect"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Multimodal Architect. Good at mixed image + copy briefs.", why: "Use when the brief is visual from the first line.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+  { id: "gemini", name: "Gemini 3.8", brand: "Google", seats: ["architect"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Multimodal Architect. Good at mixed image + copy briefs.", why: "Use when the brief is visual from the first line.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
   { id: "mistral", name: "Mistral", brand: "Mistral", seats: ["architect"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Tight Architect. Short specs, no fluff.", why: "Cuts the brief to what Coder and Visual can ship.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
   { id: "qwen", name: "Qwen", brand: "Alibaba", seats: ["coder"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Coder for dense UI and bilingual copy.", why: "Strong when the app needs Croatian + English.", wire: "app", includedIn: ["free", "pro", "premium"] },
   { id: "deepseek", name: "DeepSeek", brand: "DeepSeek", seats: ["coder"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Coder that prefers working forms over decoration.", why: "Swap in for CRUD-heavy apps.", wire: "app", includedIn: ["free", "pro", "premium"] },
@@ -98,6 +98,17 @@ export const CATALOG: CatalogItem[] = [
   { id: "prompt-memory", name: "Prompt Memory", brand: "Studio", seats: ["architect", "visual", "coder", "security"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "4,000-character standing brief per seat.", why: "Agents remember how you work.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
   { id: "markdown-docs", name: "Markdown Docs", brand: "Studio", seats: ["architect", "coder"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "Short usage notes in consensus, never as the product.", why: "User needs to know how to use what shipped.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
   { id: "brand-voice", name: "Brand Voice", brand: "Studio", seats: ["visual", "architect"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "Locks tone across still, clip, and UI copy.", why: "Four agents, one voice.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+
+  // Agent-native plugins — tuned to each model's real strengths, so a seat plays
+  // to what that model is actually best at. Free on every plan.
+  { id: "claude-deepthink", name: "Deep Think", brand: "Anthropic", seats: ["architect"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "Extended-thinking pass before the brief is handed off.", why: "Claude Opus/Fable reason hardest on tight constraints.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+  { id: "claude-artifacts", name: "Artifacts", brand: "Anthropic", seats: ["architect"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "Builds a structured deliverable — spec, diagram, or doc — you iterate on.", why: "Claude's native artifact workflow, not chat theater.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+  { id: "gpt-canvas", name: "Code Canvas", brand: "OpenAI", seats: ["coder"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "Surgical diffs to the shipped app instead of full rewrites.", why: "GPT's canvas keeps edits targeted and reviewable.", wire: "app", includedIn: ["free", "pro", "premium"] },
+  { id: "gpt-tools", name: "Tool Calls", brand: "OpenAI", seats: ["coder"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "Typed function/tool calls for wiring real APIs into the app.", why: "GPT leads on structured tool orchestration.", wire: "app", includedIn: ["free", "pro", "premium"] },
+  { id: "gemini-image", name: "Gemini Image", brand: "Google", seats: ["visual"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "Generate and edit stills in-line (Gemini's native image path).", why: "Gemini's text-in / image-out — the 'nano banana' capability.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+  { id: "gemini-ground", name: "Multimodal Read", brand: "Google", seats: ["visual"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "Reads an attached image/video and grounds the brief in it.", why: "Gemini leads on mixed image + text understanding.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+  { id: "grok-live-search", name: "Live X Search", brand: "xAI", seats: ["security"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "Checks claims against live X and the web in real time.", why: "Grok's native X/web search keeps the verdict current.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+  { id: "grok-sources", name: "Source Grounding", brand: "xAI", seats: ["security"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "Attaches a primary source to every flagged claim.", why: "Grok surfaces real-time citations, not stale ones.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
 
   { id: "kling", name: "Kling 3.0", brand: "Kuaishou", seats: ["visual"], kind: "agent", tier: "paid", price: "$19", cents: 1900, blurb: "People, camera, physics. Premium video seat.", why: "Most-used cinematic tool for ads with faces.", wire: "kling", includedIn: ["premium"], pluginId: "kling-video" },
   { id: "kling-pro", name: "Kling 3.0 Pro", brand: "Kuaishou", seats: ["visual"], kind: "agent", tier: "paid", price: "$20", cents: 2000, blurb: "1080p Kling. Finished spots.", why: "Premium default for the last take.", wire: "kling", includedIn: ["premium"], pluginId: "kling-video" },

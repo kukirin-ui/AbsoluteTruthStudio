@@ -13,17 +13,29 @@ import {
   assertMeshFunding,
 } from "@/lib/billing/mesh-gate.server";
 import { InsufficientBufferError, debitMeter } from "@/lib/billing/meter.server";
+import {
+  anthropicDataToOpenAi,
+  buildChatFetch,
+  powerParams,
+  providerForAgentId,
+  resolveLeadRouting,
+  type OutputPower,
+} from "@/lib/providers";
+import { resolveMeshModel } from "@/lib/tiers";
 
 type Incoming = {
   mode?: string;
   plan?: string;
   intent?: string;
+  power?: string;
+  tier?: string;
   duration?: number;
   specCompiler?: boolean;
   deepAudit?: boolean;
   memory?: Partial<Record<AgentId, string>>;
   roster?: Partial<Roster>;
   attachments?: Partial<Attachments>;
+  activeSeats?: Partial<Record<AgentId, boolean>>;
   messages?: { role?: string; content?: string }[];
   /** Ignored — session identity only (IDOR guard). */
   userId?: string;
@@ -57,6 +69,38 @@ function jsonError(
   details: unknown = null,
 ) {
   return Response.json({ error, code, details }, { status });
+}
+
+/**
+ * Re-encode an Anthropic Messages SSE stream as the OpenAI-style
+ * `data: {choices:[{delta:{content}}]}` stream the studio frontend already
+ * parses, so a Claude lead needs no client changes. Ends with `data: [DONE]`.
+ */
+function anthropicToOpenAiStream(input: ReadableStream<Uint8Array>): ReadableStream<Uint8Array> {
+  const decoder = new TextDecoder();
+  const encoder = new TextEncoder();
+  let buffer = "";
+  return input.pipeThrough(
+    new TransformStream<Uint8Array, Uint8Array>({
+      transform(chunk, controller) {
+        buffer += decoder.decode(chunk, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.startsWith("data:")) continue;
+          const converted = anthropicDataToOpenAi(line.slice(5));
+          if (converted) controller.enqueue(encoder.encode(converted));
+        }
+      },
+      flush(controller) {
+        if (buffer.startsWith("data:")) {
+          const converted = anthropicDataToOpenAi(buffer.slice(5));
+          if (converted) controller.enqueue(encoder.encode(converted));
+        }
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      },
+    }),
+  );
 }
 
 export const Route = createFileRoute("/api/mesh")({
@@ -106,11 +150,16 @@ export const Route = createFileRoute("/api/mesh")({
           return jsonError(500, "Internal server error", "INTERNAL_ERROR");
         }
 
-        // Hard-stop unpaid: credits=0 AND no xAI BYOK → 402 PAYMENT_REQUIRED.
-        // Non-xAI BYOK alone does NOT fund owner-key mesh.
+        // Lead provider = who sits the Architect seat; it drives which real model
+        // the run calls, which owner/BYOK key funds it, and the funding check.
+        const roster = normalizeRoster(body.roster);
+        const leadProvider = providerForAgentId(roster.architect);
+
+        // Funded by credits OR the user's own BYOK key for the lead provider
+        // (their own key for any model — including ones beyond the four seats).
         let creditCents = 0;
         try {
-          const funding = await assertMeshFunding(userId);
+          const funding = await assertMeshFunding(userId, leadProvider);
           creditCents = funding.creditCents;
         } catch (err) {
           if (err instanceof MeshPaymentRequiredError) {
@@ -162,19 +211,21 @@ export const Route = createFileRoute("/api/mesh")({
             );
           }
         } else {
+          // BYOK path: use the user's own key for the lead provider — never an
+          // owner key. Works for any provider (xai/openai/anthropic/google).
           const {
             decryptByokForAdapter,
             ByokNotConfiguredError,
             ByokDecryptError,
           } = await import("@/lib/auth/byok-credentials.server");
           try {
-            apiKey = await decryptByokForAdapter(userId, "xai");
+            apiKey = await decryptByokForAdapter(userId, leadProvider);
             if (!apiKey) {
               return jsonError(
                 402,
-                "Payment required: add credits or connect an xAI BYOK key",
+                `Payment required: add credits or connect a ${leadProvider} BYOK key`,
                 "PAYMENT_REQUIRED",
-                { creditCents: 0, hasByokXai: false },
+                { creditCents: 0, hasByokLead: false },
               );
             }
           } catch (err) {
@@ -188,9 +239,9 @@ export const Route = createFileRoute("/api/mesh")({
               });
               return jsonError(
                 402,
-                "Payment required: add credits or reconnect xAI BYOK",
+                `Payment required: add credits or reconnect your ${leadProvider} key`,
                 "PAYMENT_REQUIRED",
-                { creditCents: 0, hasByokXai: true },
+                { creditCents: 0, hasByokLead: true },
               );
             }
             console.error("[mesh] BYOK resolve failed", {
@@ -198,7 +249,7 @@ export const Route = createFileRoute("/api/mesh")({
             });
             return jsonError(
               402,
-              "Payment required: add credits or connect an xAI BYOK key",
+              "Payment required: add credits or connect a BYOK key",
               "PAYMENT_REQUIRED",
               { creditCents: 0 },
             );
@@ -208,10 +259,12 @@ export const Route = createFileRoute("/api/mesh")({
         const duration =
           typeof body.duration === "number" && body.duration > 0 ? Math.min(60, Math.round(body.duration)) : undefined;
 
-        const roster = normalizeRoster(body.roster);
         const attachments = normalizeAttachments(body.attachments);
         const kling = plan === "premium" || roster.visual === "kling" || roster.visual === "kling-pro";
         const priority = (attachments.architect ?? []).includes("priority-mesh");
+        const power: OutputPower =
+          body.power === "low" || body.power === "max" ? body.power : "mid";
+        const { temperature } = powerParams(power);
 
         const maxTokens =
           intent === "app" || mode === "build"
@@ -224,38 +277,120 @@ export const Route = createFileRoute("/api/mesh")({
                   ? 1400
                   : 700;
 
-        const xai = await fetch("https://api.x.ai/v1/chat/completions", {
-          method: "POST",
+        const activeSeats =
+          body.activeSeats && typeof body.activeSeats === "object"
+            ? (["architect", "visual", "coder", "security"] as AgentId[]).reduce<
+                Partial<Record<AgentId, boolean>>
+              >((acc, seat) => {
+                if (typeof body.activeSeats?.[seat] === "boolean") acc[seat] = body.activeSeats[seat];
+                return acc;
+              }, {})
+            : undefined;
+
+        const system = buildSystemPrompt(mode, plan, {
+          intent,
+          duration,
+          specCompiler: Boolean(body.specCompiler),
+          deepAudit: Boolean(body.deepAudit),
+          memory: clampMemory(body.memory),
+          kling,
+          roster,
+          attachments,
+          activeSeats,
+        });
+
+        // Credits → owner keys resolved per provider (xAI fallback if the owner
+        // has no key for that provider). BYOK → the user's own key for the lead
+        // provider, routed straight to that provider (no owner-key fallback).
+        const fundedByCredits = creditCents > 0;
+        const routing = fundedByCredits
+          ? resolveLeadRouting(roster.architect)
+          : ({
+              kind: "provider" as const,
+              provider: leadProvider,
+              model: resolveMeshModel(leadProvider, plan, body.tier),
+              apiKey: (apiKey ?? "") as string,
+            });
+
+        // Per-plan tier → exact model id (Premium=highest, Pro=few-below, Free=basic;
+        // a client-sent downgrade is clamped to the plan ceiling).
+        const xaiModel = resolveMeshModel("xai", plan, body.tier);
+        const xaiFallback = () => ({
+          url: "https://api.x.ai/v1/chat/completions",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${apiKey}`,
           },
           body: JSON.stringify({
-            model: "grok-4.5",
+            model: xaiModel,
             stream: true,
-            temperature: 0.2,
+            temperature,
             max_tokens: maxTokens,
-            messages: [
-              {
-                role: "system",
-                content: buildSystemPrompt(mode, plan, {
-                  intent,
-                  duration,
-                  specCompiler: Boolean(body.specCompiler),
-                  deepAudit: Boolean(body.deepAudit),
-                  memory: clampMemory(body.memory),
-                  kling,
-                  roster,
-                  attachments,
-                }),
-              },
-              ...messages,
-            ],
+            messages: [{ role: "system", content: system }, ...messages],
           }),
+          translateAnthropic: false,
         });
 
-        if (!xai.ok || !xai.body) {
-          if (xai.status === 401 || xai.status === 403 || xai.status === 429) {
+        const req =
+          routing.kind === "provider"
+            ? {
+                ...buildChatFetch({
+                  provider: routing.provider,
+                  apiKey: routing.apiKey,
+                  model: resolveMeshModel(routing.provider, plan, body.tier),
+                  system,
+                  messages,
+                  maxTokens,
+                  temperature,
+                }),
+                translateAnthropic: routing.provider === "anthropic",
+              }
+            : xaiFallback();
+
+        async function callUpstream(input: { url: string; headers: Record<string, string>; body: string }) {
+          return fetch(input.url, { method: "POST", headers: input.headers, body: input.body });
+        }
+
+        let upstream: Response;
+        try {
+          upstream = await callUpstream(req);
+        } catch {
+          // A real-provider network failure must not kill the mesh — retry on the
+          // owner xAI key, but only on the credits path (never reuse a BYOK key).
+          if (fundedByCredits && routing.kind === "provider") {
+            try {
+              upstream = await callUpstream(xaiFallback());
+            } catch {
+              return Response.json(
+                { error: "AI is not available right now. Local chats and exports still work." },
+                { status: 502 },
+              );
+            }
+          } else {
+            return Response.json(
+              { error: "AI is not available right now. Local chats and exports still work." },
+              { status: 502 },
+            );
+          }
+        }
+
+        // A real-provider error (bad model/key/rate) also retries on the owner
+        // xAI key — credits path only, so a BYOK key is never sent to xAI.
+        if ((!upstream.ok || !upstream.body) && fundedByCredits && routing.kind === "provider") {
+          const retry = await callUpstream(xaiFallback()).catch(() => null);
+          if (retry && retry.ok && retry.body) {
+            return new Response(retry.body, {
+              headers: {
+                "Content-Type": "text/event-stream; charset=utf-8",
+                "Cache-Control": "no-cache, no-transform",
+                Connection: "keep-alive",
+              },
+            });
+          }
+        }
+
+        if (!upstream.ok || !upstream.body) {
+          if (upstream.status === 401 || upstream.status === 403 || upstream.status === 429) {
             return Response.json(
               {
                 error:
@@ -270,7 +405,12 @@ export const Route = createFileRoute("/api/mesh")({
           );
         }
 
-        return new Response(xai.body, {
+        const outBody =
+          "translateAnthropic" in req && req.translateAnthropic
+            ? anthropicToOpenAiStream(upstream.body)
+            : upstream.body;
+
+        return new Response(outBody, {
           headers: {
             "Content-Type": "text/event-stream; charset=utf-8",
             "Cache-Control": "no-cache, no-transform",

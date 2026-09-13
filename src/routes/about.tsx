@@ -10,27 +10,27 @@ function AboutPage() {
   return (
     <SiteShell title="About" kicker="Absolute Truth Studio">
       <p>
-        Absolute Truth Studio is an elite, no-bullshit workbench for making worldwide-grade content. Four frontier
-        agents — Claude, ChatGPT, Gemini, and Grok — work one brief in lockstep and hand you a verified answer or a
-        real, running React app. Not chat theater. Not a demo. The output is meant to ship.
+        Absolute Truth Studio is a precision workbench for people who ship at the highest level. Four frontier
+        agents — Claude, ChatGPT, Gemini, and Grok — take one brief together, challenge each other's work, and hand
+        you a verified answer or a real, running React application. Every claim is checked. Every deliverable is
+        meant to ship.
       </p>
       <p>
-        It is built for the people who already live in Claude Code and a stack of plugins and still want more:
-        founders, engineers, and operators who need the highest possible output and refuse to babysit four
-        separate tools. You choose how many of the four seats run (1 to 4), who sits each seat, and which tier of
-        that model you spend — from a lean baseline up to the highest tier known today.
+        Why this over Claude Code and a drawer of plugins? Because a single model cannot audit itself. Here, four
+        of the best models on earth reach consensus on the same brief in one place — you get the cross-checked
+        answer and the finished product from one seat, instead of stitching tools together and hoping.
       </p>
       <p>
-        There are exactly two ways to run it. Buy studio credits and we bill the real model usage at a 1.3×
-        rate — you pay a small margin, we keep the lights on, nobody meters you into the ground. Or bring your own
-        keys (BYOK): connect your Anthropic, OpenAI, Google, or xAI keys and the studio runs on your accounts at
-        cost, no markup. Either way you own the result — export the code, take it off this device.
+        You stay in control. Choose how many of the four seats run (1 to 4), who sits each one, and how high a tier
+        of that model you use — from a fast baseline up to the highest tier available today, with a per-seat
+        downgrade by exact model name. Combine any models with any plugin; there is no cap on what you assemble.
       </p>
       <p>
-        Premium runs every seat at the highest tier available today, kept current as the frontier moves. Pro runs
-        the same four seats a few tiers down with per-seat control. Free lets you feel the mesh at a basic tier on
-        our credits. Plugins are optional and attach only when you ask — never forced into a plan. Billing is
-        Stripe-only.
+        Run it two ways. Buy <strong className="font-medium text-fg">studio credits</strong> for one-click access to
+        every model, or use <strong className="font-medium text-fg">BYOK</strong> and connect your own Anthropic,
+        OpenAI, Google, xAI — or any other provider you hold — to run on your own accounts. Premium unlocks the
+        highest tier of every agent, kept current as the frontier moves; Pro sits a few tiers below so you can feel
+        the ceiling; the basic tier lets you try the mesh first. Billing is Stripe-only.
       </p>
     </SiteShell>
   );
