@@ -56,14 +56,20 @@ test("non-.sql entries are dropped (readdir also yields the auth/ directory)", (
   assert.deepEqual(pendingMigrations(["auth", "README.md"], []), []);
 });
 
-test("Scale auth-on: globbed migrations are 0001_auth then 0002_scale_entitlements", () => {
+test("Scale auth-on: globbed migrations apply 0001_auth before 0002_scale_entitlements", () => {
   // Auth Scale v1 copies migrations/auth/0001_auth.sql to migrations/ so the
   // non-recursive migrate applies Better Auth DDL before entitlements FK.
   const migrationsDir = join(projectRoot(), "migrations");
-  assert.deepEqual(
-    pendingMigrations(readdirSync(migrationsDir), []).map((m) => m.name),
-    ["0001_auth.sql", "0002_scale_entitlements.sql"],
-  );
+  const names = pendingMigrations(readdirSync(migrationsDir), []).map((m) => m.name);
+  // pendingMigrations returns name order, so later migrations (0003+) may append
+  // — assert the auth-before-entitlements ordering invariant, not a brittle
+  // exact list that breaks whenever a migration is added.
+  assert.deepEqual(names, [...names].sort());
+  const authIdx = names.indexOf("0001_auth.sql");
+  const entIdx = names.indexOf("0002_scale_entitlements.sql");
+  assert.ok(authIdx !== -1, "0001_auth.sql must be copied up into migrations/");
+  assert.ok(entIdx !== -1, "0002_scale_entitlements.sql must be present");
+  assert.ok(authIdx < entIdx, "Better Auth DDL must precede the entitlements FK");
   assert.ok(readdirSync(join(migrationsDir, "auth")).includes("0001_auth.sql"));
 });
 
