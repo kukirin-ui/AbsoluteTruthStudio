@@ -21,16 +21,18 @@ function AboutPage() {
         that model you spend — from a lean baseline up to the highest tier known today.
       </p>
       <p>
-        There are exactly two ways to run it. Buy studio credits and we bill the real model usage at a 1.3×
-        rate — you pay a small margin, we keep the lights on, nobody meters you into the ground. Or bring your own
-        keys (BYOK): connect your Anthropic, OpenAI, Google, or xAI keys and the studio runs on your accounts at
-        cost, no markup. Either way you own the result — export the code, take it off this device.
+        Be clear on what a subscription is: it is <strong className="font-medium text-fg">not</strong> free model
+        usage. It is a platform with no limits on what you combine — any models, any of the 25+ plugins, 1 to 4
+        agents, in whatever arrangement your work needs. You fund the actual calls two ways. Buy studio credits and
+        we bill real usage at a 1.3× rate — a small margin, never a meter trap. Or bring your own keys (BYOK):
+        connect your Anthropic, OpenAI, Google, or xAI keys — and any other provider you hold — and run that exact
+        model at cost, no markup, even models beyond the main four seats. Either way you own the result.
       </p>
       <p>
-        Premium runs every seat at the highest tier available today, kept current as the frontier moves. Pro runs
-        the same four seats a few tiers down with per-seat control. Free lets you feel the mesh at a basic tier on
-        our credits. Plugins are optional and attach only when you ask — never forced into a plan. Billing is
-        Stripe-only.
+        The plan sets one thing: how high a tier your agents may reach. Premium runs every agent — the main four
+        and the whole library — at the highest tier known today, kept current, with a per-seat downgrade by exact
+        model name. Pro sits a few tiers below the top so you can see what Premium delivers, with the same downgrade
+        control. Free is a basic tier on our credits. Plugins attach only when you ask. Billing is Stripe-only.
       </p>
     </SiteShell>
   );

@@ -16,12 +16,16 @@ const FAQS = [
     a: "Yes. The Coder seat ships a React application — screens, frontend, and a working mock backend — into the live preview. Not an HTML poster. Export ZIP, Sync, or push to GitHub for the source.",
   },
   {
-    q: "How do I pay for the model calls?",
-    a: "Two ways, on any plan. Buy studio credits and we bill real usage at a 1.3× rate — a small margin, never a meter trap. Or bring your own keys (BYOK): connect your Anthropic / OpenAI / Google / xAI keys and run on your own accounts at cost, with no markup.",
+    q: "Does Pro or Premium include free model usage?",
+    a: "No — and that is the point. The subscription buys the platform, not free tokens. You fund the actual model calls two ways: buy studio credits (billed at 1.3× real usage — a small margin, never a meter trap), or BYOK and run on your own keys at cost. The plan only sets how high a model tier your agents may reach.",
+  },
+  {
+    q: "Can I use a model that isn't one of the four seats?",
+    a: "Yes, with BYOK. Connect your own key for any provider you hold and run that exact model in the mesh — even one beyond Claude, ChatGPT, Gemini, and Grok. Combine any models with any of the 25+ plugins; there is no cap on what you assemble.",
   },
   {
     q: "Can I run fewer than four agents, or pick the model level?",
-    a: "Yes. Choose how many of the four seats run (1 to 4) and who sits each one. Each seat has a tier selector — Free runs a basic tier, Pro a few tiers up with per-seat control, and Premium the highest tier known today. An output-power control (low / mid / max) sets how hard the seats push.",
+    a: "Yes. Choose how many of the four seats run (1 to 4) and who sits each one. Each seat has a tier selector with exact model names — Free runs a basic tier, Pro a few tiers up with per-seat downgrade, and Premium the highest tier known today. An output-power control (low / mid / max) sets how hard the seats push.",
   },
   {
     q: "What is agent memory?",

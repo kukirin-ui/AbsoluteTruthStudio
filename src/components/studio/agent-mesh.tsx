@@ -195,7 +195,7 @@ function SeatPicker({
     <Dialog open onOpenChange={(v) => !v && onClose()}>
       <DialogContent
         title={`Swap agent · ${meta.label}`}
-        description={`${meta.framework} Four specialized tabs stay in lockstep. Agent swap picks who runs this tab, then attach tools. Defaults stay Claude, Imagine, ChatGPT, and Grok until you change them.`}
+        description={`${meta.framework} The seats stay in lockstep. Swap picks who runs this tab; each agent shows its exact model, and your plan sets the tier ceiling.`}
         className="max-h-[min(88dvh,40rem)] w-[min(100%-1.5rem,36rem)] overflow-y-auto"
       >
         <p className="mb-3 text-xs text-muted">

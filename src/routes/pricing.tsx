@@ -12,16 +12,18 @@ function PricingPage() {
   return (
     <SiteShell title="Pricing" kicker="Free · Pro $19 · Premium $49">
       <p>
-        One thing decides the plan: how high a tier the four seats — Claude, ChatGPT, Gemini, Grok — get to run.
-        Free is a basic tier on us. Pro steps up a few tiers with per-seat control. Premium runs the highest tier
-        known today, kept current. On every plan you choose how many of the four agents run and which level each
-        one spends.
+        Read this first: the subscription is <span className="text-fg">not free model usage</span>. What you buy is
+        the platform — a mesh that runs whatever combination you can imagine with no cap on what you build. The plan
+        only sets how high a <span className="text-fg">tier</span> your agents may reach: Free is a basic tier on us,
+        Pro a few tiers below the top, Premium the highest tier known today (kept current). On every plan you choose
+        how many agents run (1 to 4) and can downgrade any seat by exact model name.
       </p>
       <p>
-        Two ways to pay for the model calls, on any plan: buy <span className="text-fg">studio credits</span>
-        {" "}(billed at a 1.3× rate on real usage — a small margin, never a meter trap), or use{" "}
-        <span className="text-fg">BYOK</span> and connect your own Anthropic / OpenAI / Google / xAI keys to run at
-        cost with no markup. Stripe-only for the subscription. After checkout, tap Activate on this device.
+        You fund the actual model calls two ways, on any plan: buy <span className="text-fg">studio credits</span>
+        {" "}(billed at 1.3× real usage — a small margin, never a meter trap), or <span className="text-fg">BYOK</span>
+        {" "}— connect your own keys and run <span className="text-fg">any</span> model at cost, including ones beyond
+        the main four. Combine models and all 25+ plugins however you want. Stripe-only for the subscription; tap
+        Activate after checkout.
       </p>
       <div className="grid gap-3 sm:grid-cols-3">
         {PLANS.map((p) => (
