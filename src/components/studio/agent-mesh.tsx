@@ -15,11 +15,17 @@ import {
 } from "@/lib/catalog";
 import { seatUiLabel } from "@/lib/mesh";
 import type { PluginWallet } from "@/lib/plugins";
+import { providerForAgentId, type OutputPower } from "@/lib/providers";
+import { tierOptionsForPlan, type ModelTier } from "@/lib/tiers";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { PauseCircle, ShieldAlert } from "lucide-react";
+import { PauseCircle, Power, ShieldAlert } from "lucide-react";
+
+type SeatTiers = Record<AgentId, ModelTier | null>;
+type ActiveSeats = Record<AgentId, boolean>;
+const POWER_LEVELS: OutputPower[] = ["low", "mid", "max"];
 
 export function AgentMesh({
   traces,
@@ -30,10 +36,16 @@ export function AgentMesh({
   attachments,
   plan,
   wallet,
+  seatTier,
+  activeSeats,
+  power,
   renderPaused = false,
   onSeat,
   onAttach,
   onUnlock,
+  onSeatTier,
+  onToggleSeat,
+  onPower,
 }: {
   traces: AgentTrace[];
   streaming: boolean;
@@ -43,21 +55,56 @@ export function AgentMesh({
   attachments: Attachments;
   plan: PlanId;
   wallet: PluginWallet;
+  seatTier?: SeatTiers;
+  activeSeats?: ActiveSeats;
+  power?: OutputPower;
   /** Visual/render path paused or waiting — Visual seat shows RENDER PAUSED, not fake LIVE */
   renderPaused?: boolean;
   onSeat: (seat: AgentId, id: string) => boolean;
   onAttach: (seat: AgentId, id: string) => boolean;
   onUnlock: (item: CatalogItem) => void;
+  onSeatTier?: (seat: AgentId, tier: ModelTier | null) => void;
+  onToggleSeat?: (seat: AgentId) => void;
+  onPower?: (power: OutputPower) => void;
 }) {
   const [pick, setPick] = useState<AgentId | null>(null);
   void streaming; // parent drives LIVE via trace.status === "streaming"
 
+  const activeCount = activeSeats ? SEAT_ORDER.filter((s) => activeSeats[s]).length : 4;
+
   return (
     <div className="relative z-10 isolate bg-bg">
+      {onPower && onToggleSeat ? (
+        <div className="mb-2 flex flex-wrap items-center gap-2 text-[10px] tracking-wide text-subtle uppercase">
+          <span className="text-muted">{activeCount}/4 agents</span>
+          <span className="text-subtle/50">·</span>
+          <span>Power</span>
+          <div className="inline-flex overflow-hidden rounded-full bg-elevated shadow-[0_0_0_1px_rgb(255_255_255/0.06)]">
+            {POWER_LEVELS.map((lvl) => (
+              <button
+                key={lvl}
+                type="button"
+                onClick={() => onPower(lvl)}
+                className={cn(
+                  "px-2.5 py-1 text-[10px] tracking-wide uppercase transition-colors",
+                  power === lvl ? "bg-indigo-glow/20 text-indigo-glow" : "text-muted hover:text-fg",
+                )}
+              >
+                {lvl}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
       <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
         {SEAT_ORDER.map((seat) => {
           const seated = seatedItem(roster, seat);
           const meta = SEAT_META[seat];
+          const seatActive = activeSeats ? activeSeats[seat] !== false : true;
+          const selectedTier = seatTier?.[seat] ?? null;
+          const tierLabel = selectedTier
+            ? tierOptionsForPlan(providerForAgentId(seated.id), plan).find((o) => o.tier === selectedTier)?.label
+            : null;
           const raw = traces.find((t) => t.id === seat) ?? {
             id: seat,
             status: "idle" as const,
@@ -82,7 +129,8 @@ export function AgentMesh({
               className={cn(
                 "relative overflow-hidden rounded-xl bg-panel p-2 text-left shadow-[0_0_0_1px_rgb(255_255_255/0.06)] md:p-3",
                 compact ? "min-h-11" : "min-h-[5.5rem] md:min-h-[7.25rem]",
-                "transition-[box-shadow] duration-250 ease-out",
+                "transition-[box-shadow,opacity] duration-250 ease-out",
+                !seatActive && "opacity-45",
                 paused && "shadow-[0_0_0_1px_rgb(245_158_11/0.45),0_0_20px_rgb(245_158_11/0.12)]",
                 flagged && !paused && !live && "shadow-[0_0_0_1px_rgb(245_158_11/0.5)]",
                 trace.status === "verified" && !live && !paused && "shadow-[0_0_0_1px_rgb(16_185_129/0.35)]",
@@ -108,17 +156,35 @@ export function AgentMesh({
                   <p className="truncate text-xs text-fg">
                     {meta.label}
                   </p>
-                  <p className="truncate text-[10px] text-muted">{meta.role}</p>
+                  <p className="truncate text-[10px] text-muted">
+                    {tierLabel ? `Tier: ${tierLabel}` : meta.role}
+                  </p>
                 </button>
                 <div className="flex shrink-0 flex-col items-end gap-1">
-                  <StatusPill status={flagged && !paused ? "flagged" : trace.status} />
-                  <button
-                    type="button"
-                    onClick={() => setPick(seat)}
-                    className="h-7 rounded-md px-2 text-[10px] tracking-wide text-indigo-glow uppercase hover:bg-elevated"
-                  >
-                    Swap
-                  </button>
+                  <StatusPill status={flagged && !paused ? "flagged" : !seatActive ? "idle" : trace.status} />
+                  <div className="flex items-center gap-1">
+                    {onToggleSeat ? (
+                      <button
+                        type="button"
+                        onClick={() => onToggleSeat(seat)}
+                        title={seatActive ? "Idle this agent" : "Activate this agent"}
+                        aria-pressed={seatActive}
+                        className={cn(
+                          "grid size-6 place-items-center rounded-md hover:bg-elevated",
+                          seatActive ? "text-emerald-glow" : "text-subtle",
+                        )}
+                      >
+                        <Power className="size-3" />
+                      </button>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => setPick(seat)}
+                      className="h-7 rounded-md px-2 text-[10px] tracking-wide text-indigo-glow uppercase hover:bg-elevated"
+                    >
+                      Swap
+                    </button>
+                  </div>
                 </div>
               </header>
               {compact ? null : (
@@ -146,6 +212,8 @@ export function AgentMesh({
         attachments={attachments}
         plan={plan}
         wallet={wallet}
+        currentTier={pick ? (seatTier?.[pick] ?? null) : null}
+        onSeatTier={onSeatTier}
         onSeat={(seat, id) => {
           const ok = onSeat(seat, id);
           if (ok) setPick(null);
@@ -170,6 +238,8 @@ function SeatPicker({
   attachments,
   plan,
   wallet,
+  currentTier,
+  onSeatTier,
   onSeat,
   onAttach,
   onUnlock,
@@ -180,6 +250,8 @@ function SeatPicker({
   attachments: Attachments;
   plan: PlanId;
   wallet: PluginWallet;
+  currentTier?: ModelTier | null;
+  onSeatTier?: (seat: AgentId, tier: ModelTier | null) => void;
   onSeat: (seat: AgentId, id: string) => boolean;
   onAttach: (seat: AgentId, id: string) => boolean;
   onUnlock: (item: CatalogItem) => void;
@@ -190,6 +262,7 @@ function SeatPicker({
   const agents = agentsForSeat(seat);
   const tools = toolsForSeat(seat);
   const attached = new Set(attachments[seat] ?? []);
+  const tierOptions = tierOptionsForPlan(providerForAgentId(current.id), plan);
 
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
@@ -201,6 +274,40 @@ function SeatPicker({
         <p className="mb-3 text-xs text-muted">
           Live now: <span className="text-fg">{current.name}</span> · {current.brand}
         </p>
+        {onSeatTier ? (
+          <div className="mb-5">
+            <p className="mb-2 text-[10px] tracking-wider text-subtle uppercase">
+              Model tier · {plan === "premium" ? "up to highest" : plan === "pro" ? "up to Pro ceiling" : "basic (Free)"}
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {tierOptions.map((opt) => {
+                const on = (currentTier ?? tierOptions.at(-1)?.tier) === opt.tier;
+                return (
+                  <button
+                    key={opt.tier}
+                    type="button"
+                    onClick={() => onSeatTier(seat, opt.isDefault ? null : opt.tier)}
+                    title={opt.model}
+                    className={cn(
+                      "rounded-lg px-2.5 py-1.5 text-left text-[11px] leading-tight transition-colors",
+                      on
+                        ? "bg-elevated text-fg shadow-[0_0_0_1px_rgb(99_102_241/0.4)]"
+                        : "bg-elevated/50 text-muted hover:text-fg",
+                    )}
+                  >
+                    <span className="block">{opt.label}</span>
+                    <span className="block font-mono text-[9px] text-subtle">{opt.model}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mt-1.5 text-[10px] text-subtle">
+              {plan === "free"
+                ? "Upgrade to Pro or Premium to reach higher tiers."
+                : "Downgrade any seat to save; upgrade back anytime."}
+            </p>
+          </div>
+        ) : null}
         <p className="mb-2 text-[10px] tracking-wider text-subtle uppercase">Agents</p>
         <ul className="mb-5 space-y-1.5">
           {agents.map((item) => (

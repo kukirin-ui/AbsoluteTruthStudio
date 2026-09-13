@@ -34,6 +34,7 @@ type Incoming = {
   memory?: Partial<Record<AgentId, string>>;
   roster?: Partial<Roster>;
   attachments?: Partial<Attachments>;
+  activeSeats?: Partial<Record<AgentId, boolean>>;
   messages?: { role?: string; content?: string }[];
   /** Ignored — session identity only (IDOR guard). */
   userId?: string;
@@ -269,6 +270,16 @@ export const Route = createFileRoute("/api/mesh")({
                   ? 1400
                   : 700;
 
+        const activeSeats =
+          body.activeSeats && typeof body.activeSeats === "object"
+            ? (["architect", "visual", "coder", "security"] as AgentId[]).reduce<
+                Partial<Record<AgentId, boolean>>
+              >((acc, seat) => {
+                if (typeof body.activeSeats?.[seat] === "boolean") acc[seat] = body.activeSeats[seat];
+                return acc;
+              }, {})
+            : undefined;
+
         const system = buildSystemPrompt(mode, plan, {
           intent,
           duration,
@@ -278,6 +289,7 @@ export const Route = createFileRoute("/api/mesh")({
           kling,
           roster,
           attachments,
+          activeSeats,
         });
 
         // Real frontier providers run only when funded by credits (owner keys).

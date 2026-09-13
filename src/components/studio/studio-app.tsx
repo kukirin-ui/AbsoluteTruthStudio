@@ -548,6 +548,9 @@ export function StudioApp({
               memory: store.memory,
               roster: store.roster,
               attachments: store.attachments,
+              tier: store.seatTier.architect ?? undefined,
+              power: store.power,
+              activeSeats: store.activeSeats,
               messages: [...history, { role: "user", content: meshText }],
             },
             controller.signal,
@@ -994,6 +997,12 @@ export function StudioApp({
                   attachments={store.attachments}
                   plan={plan}
                   wallet={store.wallet}
+                  seatTier={store.seatTier}
+                  activeSeats={store.activeSeats}
+                  power={store.power}
+                  onSeatTier={(seat, tier) => store.setSeatTier(seat, tier)}
+                  onToggleSeat={(seat) => store.toggleSeatActive(seat)}
+                  onPower={(p) => store.setPower(p)}
                   renderPaused={liveMedia?.status === "failed"}
                   onSeat={(seat, id) => {
                     const ok = store.setSeat(seat, id);

@@ -21,6 +21,7 @@ import { readOwner } from "./owner";
 import {
   DEFAULT_ATTACHMENTS,
   DEFAULT_ROSTER,
+  SEAT_ORDER,
   catalogById,
   catalogOwnKey,
   normalizeAttachments,
@@ -28,6 +29,46 @@ import {
   type Attachments,
   type Roster,
 } from "./catalog";
+import type { ModelTier } from "./tiers";
+import type { OutputPower } from "./providers";
+
+export type SeatTiers = Record<AgentId, ModelTier | null>;
+export type ActiveSeats = Record<AgentId, boolean>;
+
+/** null tier = "auto" (run at the plan's ceiling). */
+export const DEFAULT_SEAT_TIERS: SeatTiers = {
+  architect: null,
+  visual: null,
+  coder: null,
+  security: null,
+};
+
+export const DEFAULT_ACTIVE_SEATS: ActiveSeats = {
+  architect: true,
+  visual: true,
+  coder: true,
+  security: true,
+};
+
+function normalizeSeatTiers(raw?: Partial<SeatTiers> | null): SeatTiers {
+  const valid = new Set(["basic", "standard", "high", "max"]);
+  const next: SeatTiers = { ...DEFAULT_SEAT_TIERS };
+  for (const seat of SEAT_ORDER) {
+    const v = raw?.[seat];
+    next[seat] = typeof v === "string" && valid.has(v) ? (v as ModelTier) : null;
+  }
+  return next;
+}
+
+function normalizeActiveSeats(raw?: Partial<ActiveSeats> | null): ActiveSeats {
+  const next: ActiveSeats = { ...DEFAULT_ACTIVE_SEATS };
+  for (const seat of SEAT_ORDER) {
+    if (typeof raw?.[seat] === "boolean") next[seat] = raw[seat] as boolean;
+  }
+  // Never let every seat be idle — the mesh needs at least one voice.
+  if (!SEAT_ORDER.some((s) => next[s])) next.architect = true;
+  return next;
+}
 
 /** Persist is manual-only: no keystroke / stream thrash into localStorage. */
 let persistPaused = false;
@@ -94,6 +135,9 @@ function compactState(s: {
   entitlement: Entitlement;
   roster: Roster;
   attachments: Attachments;
+  seatTier: SeatTiers;
+  activeSeats: ActiveSeats;
+  power: OutputPower;
   conversations: Conversation[];
   projects: SavedProject[];
   activeConversationId: string | null;
@@ -106,6 +150,9 @@ function compactState(s: {
     entitlement: s.entitlement,
     roster: normalizeRoster(s.roster),
     attachments: normalizeAttachments(s.attachments),
+    seatTier: normalizeSeatTiers(s.seatTier),
+    activeSeats: normalizeActiveSeats(s.activeSeats),
+    power: s.power,
     activeConversationId: s.activeConversationId,
     conversations: s.conversations.slice(0, 8).map((c) => ({
       ...c,
@@ -164,11 +211,17 @@ type StudioState = {
   entitlement: Entitlement;
   roster: Roster;
   attachments: Attachments;
+  seatTier: SeatTiers;
+  activeSeats: ActiveSeats;
+  power: OutputPower;
   conversations: Conversation[];
   projects: SavedProject[];
   activeConversationId: string | null;
   setPlan: (plan: PlanId) => void;
   setSeat: (seat: AgentId, catalogId: string) => boolean;
+  setSeatTier: (seat: AgentId, tier: ModelTier | null) => void;
+  toggleSeatActive: (seat: AgentId) => void;
+  setPower: (power: OutputPower) => void;
   toggleAttachment: (seat: AgentId, catalogId: string) => boolean;
   setMemory: (id: AgentId, text: string) => void;
   ensureReferralCode: () => string;
@@ -225,6 +278,9 @@ export const useStudio = create<StudioState>()(
         coder: [...DEFAULT_ATTACHMENTS.coder],
         security: [...DEFAULT_ATTACHMENTS.security],
       },
+      seatTier: { ...DEFAULT_SEAT_TIERS },
+      activeSeats: { ...DEFAULT_ACTIVE_SEATS },
+      power: "mid",
       conversations: [],
       projects: [],
       activeConversationId: null,
@@ -234,6 +290,18 @@ export const useStudio = create<StudioState>()(
         // Plan change is an explicit persist point (no ambient autosave).
         queueMicrotask(() => flushStudioPersist());
       },
+
+      setSeatTier: (seat, tier) =>
+        set((s) => ({ seatTier: { ...s.seatTier, [seat]: tier } })),
+
+      toggleSeatActive: (seat) =>
+        set((s) => {
+          const next = { ...s.activeSeats, [seat]: !s.activeSeats[seat] };
+          if (!SEAT_ORDER.some((x) => next[x])) return s; // keep at least one seat live
+          return { activeSeats: next };
+        }),
+
+      setPower: (power) => set({ power }),
 
       setSeat: (seat, catalogId) => {
         const item = catalogById(catalogId);
@@ -537,8 +605,8 @@ export const useStudio = create<StudioState>()(
         })),
     }),
     {
-      name: "ats-studio-v5",
-      version: 5,
+      name: "ats-studio-v6",
+      version: 6,
       storage: createJSONStorage(() => memoryStorage),
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<StudioState>;
@@ -547,6 +615,9 @@ export const useStudio = create<StudioState>()(
           ...p,
           roster: normalizeRoster(p.roster),
           attachments: normalizeAttachments(p.attachments),
+          seatTier: normalizeSeatTiers(p.seatTier),
+          activeSeats: normalizeActiveSeats(p.activeSeats),
+          power: p.power === "low" || p.power === "max" ? p.power : "mid",
         };
       },
       partialize: (s) =>
@@ -558,6 +629,9 @@ export const useStudio = create<StudioState>()(
           entitlement: s.entitlement,
           roster: s.roster,
           attachments: s.attachments,
+          seatTier: s.seatTier,
+          activeSeats: s.activeSeats,
+          power: s.power,
           conversations: s.conversations,
           projects: s.projects,
           activeConversationId: s.activeConversationId,
