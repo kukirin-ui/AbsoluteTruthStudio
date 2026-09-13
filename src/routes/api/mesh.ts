@@ -20,12 +20,14 @@ import {
   resolveLeadRouting,
   type OutputPower,
 } from "@/lib/providers";
+import { resolveMeshModel } from "@/lib/tiers";
 
 type Incoming = {
   mode?: string;
   plan?: string;
   intent?: string;
   power?: string;
+  tier?: string;
   duration?: number;
   specCompiler?: boolean;
   deepAudit?: boolean;
@@ -287,6 +289,9 @@ export const Route = createFileRoute("/api/mesh")({
           ? resolveLeadRouting(roster.architect)
           : ({ kind: "fallback", reason: "byok xai-only" } as const);
 
+        // Per-plan tier → exact model id (Premium=highest, Pro=few-below, Free=basic;
+        // a client-sent downgrade is clamped to the plan ceiling).
+        const xaiModel = resolveMeshModel("xai", plan, body.tier);
         const xaiFallback = () => ({
           url: "https://api.x.ai/v1/chat/completions",
           headers: {
@@ -294,7 +299,7 @@ export const Route = createFileRoute("/api/mesh")({
             Authorization: `Bearer ${apiKey}`,
           },
           body: JSON.stringify({
-            model: "grok-4.5",
+            model: xaiModel,
             stream: true,
             temperature,
             max_tokens: maxTokens,
@@ -309,7 +314,7 @@ export const Route = createFileRoute("/api/mesh")({
                 ...buildChatFetch({
                   provider: routing.provider,
                   apiKey: routing.apiKey,
-                  model: routing.model,
+                  model: resolveMeshModel(routing.provider, plan, body.tier),
                   system,
                   messages,
                   maxTokens,
