@@ -127,10 +127,10 @@ export function AgentMesh({
               data-seat={seat}
               data-seat-state={ui}
               className={cn(
-                "relative overflow-hidden rounded-xl bg-panel p-2 text-left shadow-[0_0_0_1px_rgb(255_255_255/0.06)] md:p-3",
+                "seat-tab relative overflow-hidden rounded-xl bg-panel p-2 text-left shadow-[0_0_0_1px_rgb(255_255_255/0.06)] md:p-3",
                 compact ? "min-h-11" : "min-h-[5.5rem] md:min-h-[7.25rem]",
-                "transition-[box-shadow,opacity] duration-250 ease-out",
                 !seatActive && "opacity-45",
+                live && "agent-working",
                 paused && "shadow-[0_0_0_1px_rgb(245_158_11/0.45),0_0_20px_rgb(245_158_11/0.12)]",
                 flagged && !paused && !live && "shadow-[0_0_0_1px_rgb(245_158_11/0.5)]",
                 trace.status === "verified" && !live && !paused && "shadow-[0_0_0_1px_rgb(16_185_129/0.35)]",
