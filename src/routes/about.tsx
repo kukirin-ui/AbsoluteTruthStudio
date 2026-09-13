@@ -10,19 +10,27 @@ function AboutPage() {
   return (
     <SiteShell title="About" kicker="Absolute Truth Studio">
       <p>
-        Absolute Truth Studio is a real-time four-agent workbench — Architecture, Coder, Visual/UI, and
-        Verifier/Security — that produces verified technical answers and shippable artifacts (code and stills)
-        with modular plugins. Not chat theater. Not a free-video factory.
+        Absolute Truth Studio is an elite, no-bullshit workbench for making worldwide-grade content. Four frontier
+        agents — Claude, ChatGPT, Gemini, and Grok — work one brief in lockstep and hand you a verified answer or a
+        real, running React app. Not chat theater. Not a demo. The output is meant to ship.
       </p>
       <p>
-        Four specialized seat frameworks run on one mesh. They are role frameworks, not four separate vendor
-        invoices. Talk to Me returns a technical answer plus one follow-up. Build Asset aims at a running React
-        app or a still. Optional plugins attach when you need them — Kling video is attach-only, never forced.
+        It is built for the people who already live in Claude Code and a stack of plugins and still want more:
+        founders, engineers, and operators who need the highest possible output and refuse to babysit four
+        separate tools. You choose how many of the four seats run (1 to 4), who sits each seat, and which tier of
+        that model you spend — from a lean baseline up to the highest tier known today.
       </p>
       <p>
-        Free evaluates the multi-agent mesh: baseline seats, file attach, memory, and Talk to Me. Video is not a
-        Free benefit. Pro and Premium deepen concurrency, sources, stills, and optional render plugins with
-        credits. Billing is Stripe-only.
+        There are exactly two ways to run it. Buy studio credits and we bill the real model usage at a 1.3×
+        rate — you pay a small margin, we keep the lights on, nobody meters you into the ground. Or bring your own
+        keys (BYOK): connect your Anthropic, OpenAI, Google, or xAI keys and the studio runs on your accounts at
+        cost, no markup. Either way you own the result — export the code, take it off this device.
+      </p>
+      <p>
+        Premium runs every seat at the highest tier available today, kept current as the frontier moves. Pro runs
+        the same four seats a few tiers down with per-seat control. Free lets you feel the mesh at a basic tier on
+        our credits. Plugins are optional and attach only when you ask — never forced into a plan. Billing is
+        Stripe-only.
       </p>
     </SiteShell>
   );

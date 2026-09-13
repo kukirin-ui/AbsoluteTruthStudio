@@ -12,9 +12,16 @@ function PricingPage() {
   return (
     <SiteShell title="Pricing" kicker="Free · Pro $19 · Premium $49">
       <p>
-        Stripe-only billing. Plans unlock multi-agent capability — not freemium video. Free evaluates the mesh.
-        Pro and Premium add sources, stills, and optional render plugins with credits so API cost stays bounded.
-        After Stripe checkout, tap Activate on this device.
+        One thing decides the plan: how high a tier the four seats — Claude, ChatGPT, Gemini, Grok — get to run.
+        Free is a basic tier on us. Pro steps up a few tiers with per-seat control. Premium runs the highest tier
+        known today, kept current. On every plan you choose how many of the four agents run and which level each
+        one spends.
+      </p>
+      <p>
+        Two ways to pay for the model calls, on any plan: buy <span className="text-fg">studio credits</span>
+        {" "}(billed at a 1.3× rate on real usage — a small margin, never a meter trap), or use{" "}
+        <span className="text-fg">BYOK</span> and connect your own Anthropic / OpenAI / Google / xAI keys to run at
+        cost with no markup. Stripe-only for the subscription. After checkout, tap Activate on this device.
       </p>
       <div className="grid gap-3 sm:grid-cols-3">
         {PLANS.map((p) => (

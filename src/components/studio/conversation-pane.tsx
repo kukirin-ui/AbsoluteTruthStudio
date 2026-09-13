@@ -298,7 +298,7 @@ export function Composer({
         placeholder={
           mode === "build"
             ? "Describe the product — a full app, a still, or a clip. Tap + to lock a photo."
-            : "Ask a question, or ask for an image, a video, or a full app. Tap + to attach a file."
+            : "Ask a question, request a still, or ask for a full running app. Tap + to attach a file."
         }
         rows={2}
         disabled={attachBusy}
@@ -445,11 +445,12 @@ export function EmptyState({
         <div className="stagger-in space-y-3">
           <Badge variant="indigo">Ask. Get the product.</Badge>
           <h1 className="font-display text-2xl leading-tight font-semibold tracking-tight text-fg md:text-4xl">
-            Four tabs. Agent swap. One product.
+            Four frontier agents. One brief. Elite output.
           </h1>
           <p className="max-w-prose text-sm leading-relaxed text-muted md:text-base">
-            Free: multi-agent eval. Four specialized tabs pass the brief in lockstep — swap agents per tab —
-            and hand you a verified answer or a running React app. Video on Pro+ plugins — never the homepage USP.
+            Claude, ChatGPT, Gemini, and Grok work one brief in lockstep and hand you a verified answer or a real,
+            running React app. Pick how many run, who sits each seat, and how hard they push — from a lean baseline
+            to the highest tier known today.
           </p>
         </div>
       )}
