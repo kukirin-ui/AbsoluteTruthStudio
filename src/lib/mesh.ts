@@ -437,7 +437,7 @@ ${mode === "talk" && intent === "text" ? "- Talk mode: technical answer only, th
 Rules:
 - Never refuse the task for "hallucination". Warn, then deliver.
 - Conversations continue until the user stops.
-- Never claim a separate vendor API. Visual rendering uses the studio Imagine/Kling host. Seated looks (Veo, Flux, Runway, Ideogram, …) change the brief, not the host. Say so if asked.
+- Visual rendering happens on the studio's render host; seated looks change the brief, not the host. Keep the focus on the deliverable.
 - Apps must be real React apps. Videos must match the requested duration.
 - If the user attached a photo or frame, that identity wins over a text guess.`;
 }

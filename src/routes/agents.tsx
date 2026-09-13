@@ -11,12 +11,12 @@ export const Route = createFileRoute("/agents")({
 
 function AgentsPage() {
   return (
-    <SiteShell title="The four seats" kicker="Distinct frameworks · lockstep mesh">
+    <SiteShell title="The four seats" kicker="Four minds · one brief · in lockstep">
       <p>
-        Four seats pass the brief between them — Architecture, Coder, Visual/UI, and Verifier/Security. Each
-        seat has its own operating framework (not a mirrored persona). Click a seat in the studio, tap Change,
-        and pick any agent from the catalog. Attach tools to that seat. Defaults stay Claude, Imagine, ChatGPT,
-        and Grok until you swap them. {CATALOG_COUNTS.total} agents and tools in total.
+        Four specialized seats carry one brief between them — Architecture, Visual/UI, Coder, and
+        Verifier/Security — and challenge each other's work until it holds up. Open any seat in the studio, choose
+        who sits there from the catalog, set its model tier, and attach the tools it supports. The four defaults are
+        Claude, Gemini, ChatGPT, and Grok until you swap them. {CATALOG_COUNTS.total} agents and tools to combine.
       </p>
       <ul className="space-y-3">
         {SEAT_ORDER.map((seat) => {
@@ -41,12 +41,11 @@ function AgentsPage() {
         })}
       </ul>
       <p>
-        Seat states on the dashboard: <strong className="text-fg">IDLE</strong> (empty / between runs),{" "}
-        <strong className="text-fg">LIVE</strong> (that seat is streaming),{" "}
-        <strong className="text-fg">RENDER PAUSED</strong> (visual/render path waiting or paused). Ask a
-        technical question and the mesh returns a verified answer. Ask for a still and Visual briefs the frame.
-        Ask for an app and Coder ships a React product into the live preview. Optional render plugins attach when
-        needed. Verifier warns when a claim is unverified — it never auto-blocks.
+        Seat states on the dashboard: <strong className="text-fg">IDLE</strong> (between runs),{" "}
+        <strong className="text-fg">LIVE</strong> (that seat is working). Ask a technical question and the mesh
+        returns a cross-checked answer with sources. Ask for an app and Coder ships a real React product into the
+        live preview. Turn seats on or off to run 1 to 4 agents, and set each one's tier. The Verifier flags any
+        claim it can't stand behind — it warns, it never hides the answer.
       </p>
       <Button asChild>
         <Link to="/">Change a seat in the studio</Link>

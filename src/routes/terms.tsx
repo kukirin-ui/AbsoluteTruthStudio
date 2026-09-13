@@ -10,16 +10,17 @@ function TermsPage() {
   return (
     <SiteShell title="Terms" kicker="Use of the studio">
       <p>
-        The studio is provided as-is for building and verifying work on your device. You are responsible for how you
-        use generated answers and assets.
+        Absolute Truth Studio is provided as a professional tool for building and verifying your work. You own what
+        you create, and you are responsible for how you use the answers and assets it produces.
       </p>
       <p>
-        Billing is Stripe-only. Plugin and plan upgrades grant local entitlements on this device after checkout and
-        Activate. There is no crypto or web3 checkout path.
+        Subscriptions and credits are billed through Stripe. Plan and credit purchases activate on this device after
+        checkout. When you connect your own provider keys (BYOK), those calls run on your own accounts under your
+        providers' terms.
       </p>
       <p>
-        List pricing for Pro and Premium is published on the Pricing page. Referral and founding promotions, when
-        offered, never replace Stripe list checkout and do not introduce alternate payment rails.
+        Current pricing for Pro and Premium is published on the Pricing page. We do not add hidden fees, alternate
+        payment rails, or crypto checkout.
       </p>
     </SiteShell>
   );

@@ -16,12 +16,12 @@ const FAQS = [
     a: "Yes. The Coder seat ships a React application — screens, frontend, and a working mock backend — into the live preview. Not an HTML poster. Export ZIP, Sync, or push to GitHub for the source.",
   },
   {
-    q: "Does Pro or Premium include free model usage?",
-    a: "No — and that is the point. The subscription buys the platform, not free tokens. You fund the actual model calls two ways: buy studio credits (billed at 1.3× real usage — a small margin, never a meter trap), or BYOK and run on your own keys at cost. The plan only sets how high a model tier your agents may reach.",
+    q: "How do I pay for the models?",
+    a: "Two ways, on any plan. Buy studio credits for one-click access to every model, or use BYOK — connect your own provider keys and run on your own accounts. Your plan sets how high a model tier your agents may reach; credits and BYOK are just how the calls are powered.",
   },
   {
     q: "Can I use a model that isn't one of the four seats?",
-    a: "Yes, with BYOK. Connect your own key for any provider you hold and run that exact model in the mesh — even one beyond Claude, ChatGPT, Gemini, and Grok. Combine any models with any of the 25+ plugins; there is no cap on what you assemble.",
+    a: "Yes, with BYOK. Connect your own key for any provider you hold and run that exact model in the mesh — even one beyond Claude, ChatGPT, Gemini, and Grok. Combine any models with any plugin; there is no cap on what you assemble.",
   },
   {
     q: "Can I run fewer than four agents, or pick the model level?",

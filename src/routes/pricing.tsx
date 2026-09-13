@@ -12,18 +12,16 @@ function PricingPage() {
   return (
     <SiteShell title="Pricing" kicker="Free · Pro $19 · Premium $49">
       <p>
-        Read this first: the subscription is <span className="text-fg">not free model usage</span>. What you buy is
-        the platform — a mesh that runs whatever combination you can imagine with no cap on what you build. The plan
-        only sets how high a <span className="text-fg">tier</span> your agents may reach: Free is a basic tier on us,
-        Pro a few tiers below the top, Premium the highest tier known today (kept current). On every plan you choose
-        how many agents run (1 to 4) and can downgrade any seat by exact model name.
+        Your plan sets one thing: how high a <span className="text-fg">tier</span> your agents may reach. The basic
+        tier lets you try the mesh, Pro sits a few tiers below the top, and Premium runs the highest tier available
+        today — kept current as the frontier moves. On every plan you choose how many agents run (1 to 4) and can
+        downgrade any seat by its exact model name.
       </p>
       <p>
-        You fund the actual model calls two ways, on any plan: buy <span className="text-fg">studio credits</span>
-        {" "}(billed at 1.3× real usage — a small margin, never a meter trap), or <span className="text-fg">BYOK</span>
-        {" "}— connect your own keys and run <span className="text-fg">any</span> model at cost, including ones beyond
-        the main four. Combine models and all 25+ plugins however you want. Stripe-only for the subscription; tap
-        Activate after checkout.
+        Run the models two ways, on any plan: buy <span className="text-fg">studio credits</span> for one-click
+        access, or use <span className="text-fg">BYOK</span> — connect your own keys and run <span className="text-fg">any</span>
+        {" "}model on your own accounts, including ones beyond the main four. Combine any models with any plugin, with
+        no limits. Stripe-only for the subscription; tap Activate after checkout.
       </p>
       <div className="grid gap-3 sm:grid-cols-3">
         {PLANS.map((p) => (
