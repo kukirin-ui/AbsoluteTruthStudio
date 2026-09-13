@@ -68,17 +68,27 @@ export function modelEnvName(provider: MeshProvider): string {
 }
 
 /**
- * Resolve the API model string. xAI keeps a known default (grok-4.5); every other
- * provider requires an explicit MESH_MODEL_* so we never call with a guessed id.
+ * Highest-tier default model per provider (current flagships as of 2026-09).
+ * Override any of these live via MESH_MODEL_* in Vercel — that env value is the
+ * "update the model any day" lever, no code change needed.
+ *   - anthropic: claude-fable-5-1 is even higher but slower/pricier — set the env to it if wanted.
+ *   - openai: set MESH_MODEL_OPENAI=gpt-5.6 if the org lacks GPT-6 Astra access.
  */
+export const DEFAULT_MODEL: Record<MeshProvider, string> = {
+  xai: "grok-4.6",
+  anthropic: "claude-opus-5",
+  openai: "gpt-6-astra",
+  google: "gemini-3.8-flash",
+};
+
+/** Resolve the API model string: an owner-pinned MESH_MODEL_*, else the flagship default. */
 export function resolveModel(
   provider: MeshProvider,
   env: Record<string, string | undefined> = process.env,
 ): string | undefined {
   const pinned = env[modelEnvName(provider)]?.trim();
   if (pinned) return pinned;
-  if (provider === "xai") return "grok-4.5";
-  return undefined;
+  return DEFAULT_MODEL[provider];
 }
 
 /** xAI, OpenAI, and Google (via its OpenAI-compat endpoint) all speak the same SSE. */
@@ -130,6 +140,8 @@ export function buildChatFetch(req: ChatRequest): {
 } {
   const url = chatEndpoint(req.provider);
   if (req.provider === "anthropic") {
+    // Opus 5 / Fable 5.1 run extended thinking on by default, which rejects a
+    // non-default temperature — so omit temperature entirely.
     return {
       url,
       headers: {
@@ -141,11 +153,26 @@ export function buildChatFetch(req: ChatRequest): {
         model: req.model,
         stream: true,
         max_tokens: req.maxTokens,
-        temperature: req.temperature,
         system: req.system,
         messages: req.messages.map((m) => ({ role: m.role, content: m.content })),
       }),
     };
+  }
+  const payload: Record<string, unknown> = {
+    model: req.model,
+    stream: true,
+    messages: [{ role: "system", content: req.system }, ...req.messages],
+  };
+  if (req.provider === "openai") {
+    // GPT-5.6/6 reasoning models use max_completion_tokens and reject temperature.
+    payload.max_completion_tokens = req.maxTokens;
+  } else if (req.provider === "google") {
+    // Gemini 3.x deprecates classic sampling params; send only the token cap.
+    payload.max_tokens = req.maxTokens;
+  } else {
+    // xAI keeps the classic sampling knobs, so power maps to temperature here.
+    payload.max_tokens = req.maxTokens;
+    payload.temperature = req.temperature;
   }
   return {
     url,
@@ -153,13 +180,7 @@ export function buildChatFetch(req: ChatRequest): {
       "Content-Type": "application/json",
       Authorization: `Bearer ${req.apiKey}`,
     },
-    body: JSON.stringify({
-      model: req.model,
-      stream: true,
-      temperature: req.temperature,
-      max_tokens: req.maxTokens,
-      messages: [{ role: "system", content: req.system }, ...req.messages],
-    }),
+    body: JSON.stringify(payload),
   };
 }
 
