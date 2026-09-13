@@ -21,6 +21,15 @@ import { renderInstallPage } from "./grok-pwa-plugin.mjs";
 
 const TEMPLATE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
+// These tests assert the injector's pure logic against explicit inputs. The
+// injector otherwise reads this app's real branding (src/lib/og/site.json +
+// public/og.jpg) via process.cwd(), which would leak "Absolute Truth Studio"
+// and the custom og.jpg into fixture assertions. Run the file from a brand-free
+// working directory so default-cwd reads resolve to nothing; tests that need
+// real files use the absolute TEMPLATE_ROOT, and tests that pass an explicit
+// cwd/site override this anyway.
+process.chdir(mkdtempSync(join(tmpdir(), "grok-pwa-no-brand-")));
+
 test("injects before </head>", () => {
   const out = injectGrokPwaHead("<html><head><title>x</title></head><body></body></html>");
   assert.match(out, /rel="manifest"/);
