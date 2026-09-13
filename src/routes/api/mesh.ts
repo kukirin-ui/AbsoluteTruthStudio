@@ -13,11 +13,19 @@ import {
   assertMeshFunding,
 } from "@/lib/billing/mesh-gate.server";
 import { InsufficientBufferError, debitMeter } from "@/lib/billing/meter.server";
+import {
+  anthropicDataToOpenAi,
+  buildChatFetch,
+  powerParams,
+  resolveLeadRouting,
+  type OutputPower,
+} from "@/lib/providers";
 
 type Incoming = {
   mode?: string;
   plan?: string;
   intent?: string;
+  power?: string;
   duration?: number;
   specCompiler?: boolean;
   deepAudit?: boolean;
@@ -57,6 +65,38 @@ function jsonError(
   details: unknown = null,
 ) {
   return Response.json({ error, code, details }, { status });
+}
+
+/**
+ * Re-encode an Anthropic Messages SSE stream as the OpenAI-style
+ * `data: {choices:[{delta:{content}}]}` stream the studio frontend already
+ * parses, so a Claude lead needs no client changes. Ends with `data: [DONE]`.
+ */
+function anthropicToOpenAiStream(input: ReadableStream<Uint8Array>): ReadableStream<Uint8Array> {
+  const decoder = new TextDecoder();
+  const encoder = new TextEncoder();
+  let buffer = "";
+  return input.pipeThrough(
+    new TransformStream<Uint8Array, Uint8Array>({
+      transform(chunk, controller) {
+        buffer += decoder.decode(chunk, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.startsWith("data:")) continue;
+          const converted = anthropicDataToOpenAi(line.slice(5));
+          if (converted) controller.enqueue(encoder.encode(converted));
+        }
+      },
+      flush(controller) {
+        if (buffer.startsWith("data:")) {
+          const converted = anthropicDataToOpenAi(buffer.slice(5));
+          if (converted) controller.enqueue(encoder.encode(converted));
+        }
+        controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      },
+    }),
+  );
 }
 
 export const Route = createFileRoute("/api/mesh")({
@@ -212,6 +252,9 @@ export const Route = createFileRoute("/api/mesh")({
         const attachments = normalizeAttachments(body.attachments);
         const kling = plan === "premium" || roster.visual === "kling" || roster.visual === "kling-pro";
         const priority = (attachments.architect ?? []).includes("priority-mesh");
+        const power: OutputPower =
+          body.power === "low" || body.power === "max" ? body.power : "mid";
+        const { temperature } = powerParams(power);
 
         const maxTokens =
           intent === "app" || mode === "build"
@@ -224,8 +267,28 @@ export const Route = createFileRoute("/api/mesh")({
                   ? 1400
                   : 700;
 
-        const xai = await fetch("https://api.x.ai/v1/chat/completions", {
-          method: "POST",
+        const system = buildSystemPrompt(mode, plan, {
+          intent,
+          duration,
+          specCompiler: Boolean(body.specCompiler),
+          deepAudit: Boolean(body.deepAudit),
+          memory: clampMemory(body.memory),
+          kling,
+          roster,
+          attachments,
+        });
+
+        // Real frontier providers run only when funded by credits (owner keys).
+        // The BYOK-only path stays on the xAI key it already resolved. When the
+        // selected lead provider is not fully configured we fall back to xAI, so
+        // the live mesh never breaks on a missing key or model.
+        const fundedByCredits = creditCents > 0;
+        const routing = fundedByCredits
+          ? resolveLeadRouting(roster.architect)
+          : ({ kind: "fallback", reason: "byok xai-only" } as const);
+
+        const xaiFallback = () => ({
+          url: "https://api.x.ai/v1/chat/completions",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${apiKey}`,
@@ -233,29 +296,72 @@ export const Route = createFileRoute("/api/mesh")({
           body: JSON.stringify({
             model: "grok-4.5",
             stream: true,
-            temperature: 0.2,
+            temperature,
             max_tokens: maxTokens,
-            messages: [
-              {
-                role: "system",
-                content: buildSystemPrompt(mode, plan, {
-                  intent,
-                  duration,
-                  specCompiler: Boolean(body.specCompiler),
-                  deepAudit: Boolean(body.deepAudit),
-                  memory: clampMemory(body.memory),
-                  kling,
-                  roster,
-                  attachments,
-                }),
-              },
-              ...messages,
-            ],
+            messages: [{ role: "system", content: system }, ...messages],
           }),
+          translateAnthropic: false,
         });
 
-        if (!xai.ok || !xai.body) {
-          if (xai.status === 401 || xai.status === 403 || xai.status === 429) {
+        const req =
+          routing.kind === "provider"
+            ? {
+                ...buildChatFetch({
+                  provider: routing.provider,
+                  apiKey: routing.apiKey,
+                  model: routing.model,
+                  system,
+                  messages,
+                  maxTokens,
+                  temperature,
+                }),
+                translateAnthropic: routing.provider === "anthropic",
+              }
+            : xaiFallback();
+
+        async function callUpstream(input: { url: string; headers: Record<string, string>; body: string }) {
+          return fetch(input.url, { method: "POST", headers: input.headers, body: input.body });
+        }
+
+        let upstream: Response;
+        try {
+          upstream = await callUpstream(req);
+        } catch {
+          // A real-provider network failure must not kill the mesh — retry on xAI.
+          if (routing.kind === "provider" && apiKey) {
+            try {
+              upstream = await callUpstream(xaiFallback());
+            } catch {
+              return Response.json(
+                { error: "AI is not available right now. Local chats and exports still work." },
+                { status: 502 },
+              );
+            }
+          } else {
+            return Response.json(
+              { error: "AI is not available right now. Local chats and exports still work." },
+              { status: 502 },
+            );
+          }
+        }
+
+        // A real-provider error (bad model/key/rate) also retries on xAI so a
+        // deployed misconfig degrades gracefully instead of failing the turn.
+        if ((!upstream.ok || !upstream.body) && routing.kind === "provider" && apiKey) {
+          const retry = await callUpstream(xaiFallback()).catch(() => null);
+          if (retry && retry.ok && retry.body) {
+            return new Response(retry.body, {
+              headers: {
+                "Content-Type": "text/event-stream; charset=utf-8",
+                "Cache-Control": "no-cache, no-transform",
+                Connection: "keep-alive",
+              },
+            });
+          }
+        }
+
+        if (!upstream.ok || !upstream.body) {
+          if (upstream.status === 401 || upstream.status === 403 || upstream.status === 429) {
             return Response.json(
               {
                 error:
@@ -270,7 +376,12 @@ export const Route = createFileRoute("/api/mesh")({
           );
         }
 
-        return new Response(xai.body, {
+        const outBody =
+          "translateAnthropic" in req && req.translateAnthropic
+            ? anthropicToOpenAiStream(upstream.body)
+            : upstream.body;
+
+        return new Response(outBody, {
           headers: {
             "Content-Type": "text/event-stream; charset=utf-8",
             "Cache-Control": "no-cache, no-transform",
