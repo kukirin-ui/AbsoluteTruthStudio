@@ -41,7 +41,7 @@ export const PLANS: PlanDef[] = [
       "Basic tier only — capped daily usage",
       "Verified answers + baseline React apps",
       "4,000-character memory per seat",
-      "25 free plugins — combine freely",
+      "The full free-plugin shelf — combine freely",
     ],
   },
   {
@@ -75,7 +75,7 @@ export const PLANS: PlanDef[] = [
       "Fund with credits (1.3×) or BYOK — any model you own",
       "Live source editing of the shipped app",
       "Priority mesh — longest consensus, seats in lockstep",
-      "All plugins — combine anything, no creative limits",
+      "Every plugin — agent-native tools + all render plugins",
     ],
   },
 ];
