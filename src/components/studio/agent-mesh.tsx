@@ -102,9 +102,17 @@ export function AgentMesh({
           const meta = SEAT_META[seat];
           const seatActive = activeSeats ? activeSeats[seat] !== false : true;
           const selectedTier = seatTier?.[seat] ?? null;
-          const tierLabel = selectedTier
-            ? tierOptionsForPlan(providerForAgentId(seated.id), plan).find((o) => o.tier === selectedTier)?.label
-            : null;
+          // The three reasoning seats show the exact model for the plan's tier
+          // (Free -> free model, Pro -> higher, Premium -> highest). The Visual
+          // seat is a render engine, so it shows its own name.
+          const seatTierOpts = tierOptionsForPlan(providerForAgentId(seated.id), plan);
+          const tierModel =
+            (selectedTier
+              ? seatTierOpts.find((o) => o.tier === selectedTier)
+              : seatTierOpts.find((o) => o.isDefault)
+            )?.label ?? seated.name;
+          const isProviderSeat = ["Anthropic", "OpenAI", "Google", "xAI"].includes(seated.brand) && seat !== "visual";
+          const modelLabel = isProviderSeat ? tierModel : seated.name;
           const raw = traces.find((t) => t.id === seat) ?? {
             id: seat,
             status: "idle" as const,
@@ -150,15 +158,13 @@ export function AgentMesh({
                   onClick={() => setPick(seat)}
                   className="min-w-0 flex-1 text-left"
                 >
-                  <p className="truncate text-[10px] font-medium tracking-wider text-subtle uppercase">
-                    {seated.name}
+                  <p className="truncate text-[10px] font-medium tracking-wider text-indigo-glow uppercase">
+                    {modelLabel}
                   </p>
                   <p className="truncate text-xs text-fg">
                     {meta.label}
                   </p>
-                  <p className="truncate text-[10px] text-muted">
-                    {tierLabel ? `Tier: ${tierLabel}` : meta.role}
-                  </p>
+                  <p className="truncate text-[10px] text-muted">{meta.role}</p>
                 </button>
                 <div className="flex shrink-0 flex-col items-end gap-1">
                   <StatusPill status={flagged && !paused ? "flagged" : !seatActive ? "idle" : trace.status} />
@@ -265,6 +271,10 @@ function SeatPicker({
   const leadProvider = providerForAgentId(current.id);
   const tierOptions = tierOptionsForPlan(leadProvider, plan);
   const guide = PROVIDER_GUIDE[leadProvider];
+  // Tiers + provider guide only apply to the three reasoning seats, not the
+  // Visual render seat.
+  const showProvider =
+    seat !== "visual" && ["Anthropic", "OpenAI", "Google", "xAI"].includes(current.brand);
 
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
@@ -276,7 +286,7 @@ function SeatPicker({
         <p className="mb-3 text-xs text-muted">
           Live now: <span className="text-fg">{current.name}</span> · {current.brand}
         </p>
-        {onSeatTier ? (
+        {onSeatTier && showProvider ? (
           <div className="mb-5">
             <p className="mb-2 text-[10px] tracking-wider text-subtle uppercase">
               Model tier · {plan === "premium" ? "up to highest" : plan === "pro" ? "up to Pro ceiling" : "basic (Free)"}
@@ -310,6 +320,7 @@ function SeatPicker({
             </p>
           </div>
         ) : null}
+        {showProvider ? (
         <div className="mb-5 rounded-lg bg-elevated/50 p-3">
           <p className="mb-1.5 text-[10px] tracking-wider text-indigo-glow uppercase">{guide.title}</p>
           <ul className="space-y-1">
@@ -321,6 +332,7 @@ function SeatPicker({
             ))}
           </ul>
         </div>
+        ) : null}
         <p className="mb-2 text-[10px] tracking-wider text-subtle uppercase">Agents</p>
         <ul className="mb-5 space-y-1.5">
           {agents.map((item) => (

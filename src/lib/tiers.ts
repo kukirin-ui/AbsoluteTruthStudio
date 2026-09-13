@@ -39,13 +39,13 @@ export const PROVIDER_TIERS: Record<MeshProvider, Record<ModelTier, TierEntry>> 
     max: { model: "gpt-6-astra", label: "GPT-6 Astra" },
   },
   google: {
-    basic: { model: "gemini-3.6-flash", label: "Gemini 3.6 Flash" },
+    basic: { model: "gemini-3.1-flash-lite", label: "Gemini 3.1 Flash-Lite" },
     standard: { model: "gemini-3.7-flash", label: "Gemini 3.7 Flash" },
     high: { model: "gemini-3.8-flash", label: "Gemini 3.8 Flash" },
-    max: { model: "gemini-3.8-flash", label: "Gemini 3.8 Flash" },
+    max: { model: "gemini-3-pro", label: "Gemini 3 Pro" },
   },
   xai: {
-    basic: { model: "grok-4", label: "Grok 4" },
+    basic: { model: "grok-4-fast", label: "Grok 4 Fast" },
     standard: { model: "grok-4.5", label: "Grok 4.5" },
     high: { model: "grok-4.6", label: "Grok 4.6" },
     max: { model: "grok-4.6", label: "Grok 4.6" },

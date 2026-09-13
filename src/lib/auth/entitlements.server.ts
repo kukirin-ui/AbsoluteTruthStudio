@@ -6,6 +6,7 @@
  * this module provisions free rows + Stripe Customer ids only.
  */
 import { getSql } from "@/lib/db";
+import { DEV_USER_ID } from "@/lib/auth/verify.server";
 
 /** Thrown when STRIPE_SECRET_KEY is missing; route maps to 503 STRIPE_NOT_CONFIGURED. */
 export class StripeNotConfiguredError extends Error {
@@ -36,6 +37,16 @@ export class StripeApiError extends Error {
  */
 export async function ensureFreeEntitlement(userId: string): Promise<void> {
   const sql = await getSql();
+  // Auth-off preview/dev: there is no Better Auth sign-up, so the placeholder
+  // dev user has no `"user"` row. entitlements/wallets FK to it, so seed a row
+  // first (idempotent) or every insert below trips the foreign key.
+  if (userId === DEV_USER_ID) {
+    await sql`
+      insert into "user" ("id", "name", "email", "emailVerified")
+      values (${DEV_USER_ID}, 'Preview', 'dev@local.host', true)
+      on conflict ("id") do nothing
+    `;
+  }
   await sql`
     insert into entitlements (user_id, plan, buffer_cents_total, buffer_cents_remaining)
     values (${userId}, 'free', 0, 0)

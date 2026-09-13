@@ -45,7 +45,7 @@ test("resolveMeshModel maps plan+tier to exact model ids", () => {
   assert.equal(resolveMeshModel("openai", "pro", undefined, {}), "gpt-5.6-sol");
   // Free = basic
   assert.equal(resolveMeshModel("anthropic", "free", undefined, {}), "claude-haiku-4-5");
-  assert.equal(resolveMeshModel("xai", "free", undefined, {}), "grok-4");
+  assert.equal(resolveMeshModel("xai", "free", undefined, {}), "grok-4-fast");
 });
 
 test("resolveMeshModel honors a downgrade within the plan, clamps above it", () => {

@@ -4,6 +4,7 @@ import type { AgentId } from "@/lib/types";
 import { normalizeAttachments, normalizeRoster, type Attachments, type Roster } from "@/lib/catalog";
 import { resolveBillingUserId } from "@/lib/auth/scale-contract";
 import {
+  DEV_USER_ID,
   UnauthorizedError,
   requireUserId,
 } from "@/lib/auth/verify.server";
@@ -155,23 +156,31 @@ export const Route = createFileRoute("/api/mesh")({
         const roster = normalizeRoster(body.roster);
         const leadProvider = providerForAgentId(roster.architect);
 
+        // Auth-off (preview or an owner-only deploy) → every request is the shared
+        // dev user, running on the owner's own keys. There is no separate visitor
+        // to meter, so skip the credit gate and route straight to the owner keys.
+        // Turn on VITE_AUTH_ENABLED (accounts) to meter real, per-user visitors.
+        const ownerMode = userId === DEV_USER_ID;
+
         // Funded by credits OR the user's own BYOK key for the lead provider
         // (their own key for any model — including ones beyond the four seats).
         let creditCents = 0;
-        try {
-          const funding = await assertMeshFunding(userId, leadProvider);
-          creditCents = funding.creditCents;
-        } catch (err) {
-          if (err instanceof MeshPaymentRequiredError) {
-            return jsonError(402, err.message, err.code, {
-              creditCents: err.creditCents,
-              hasByok: err.hasByok,
+        if (!ownerMode) {
+          try {
+            const funding = await assertMeshFunding(userId, leadProvider);
+            creditCents = funding.creditCents;
+          } catch (err) {
+            if (err instanceof MeshPaymentRequiredError) {
+              return jsonError(402, err.message, err.code, {
+                creditCents: err.creditCents,
+                hasByok: err.hasByok,
+              });
+            }
+            console.error("[mesh] funding gate failed", {
+              name: err instanceof Error ? err.name : "unknown",
             });
+            return jsonError(500, "Internal server error", "INTERNAL_ERROR");
           }
-          console.error("[mesh] funding gate failed", {
-            name: err instanceof Error ? err.name : "unknown",
-          });
-          return jsonError(500, "Internal server error", "INTERNAL_ERROR");
         }
 
         // Key resolution (never log plaintext keys):
@@ -180,7 +189,11 @@ export const Route = createFileRoute("/api/mesh")({
         //   NEVER fall back to owner key on decrypt null / fail / BYOK_NOT_CONFIGURED
         let apiKey: string | null = null;
 
-        if (creditCents > 0) {
+        if (ownerMode) {
+          // Owner-key run: no debit. resolveLeadRouting (below) resolves the
+          // owner key for the lead provider; this xAI key backs the fallback.
+          apiKey = process.env.XAI_API_KEY ?? null;
+        } else if (creditCents > 0) {
           try {
             await debitMeter(userId, {
               cents: MESH_STUDIO_TURN_CENTS,
@@ -302,7 +315,7 @@ export const Route = createFileRoute("/api/mesh")({
         // Credits → owner keys resolved per provider (xAI fallback if the owner
         // has no key for that provider). BYOK → the user's own key for the lead
         // provider, routed straight to that provider (no owner-key fallback).
-        const fundedByCredits = creditCents > 0;
+        const fundedByCredits = ownerMode || creditCents > 0;
         const routing = fundedByCredits
           ? resolveLeadRouting(roster.architect)
           : ({
