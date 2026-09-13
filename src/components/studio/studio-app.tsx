@@ -56,7 +56,6 @@ import {
   videoPluginId,
   videoQuotaLeft,
 } from "@/lib/plugins";
-import { claimFounding, fetchFounding, MONTH_MS } from "@/lib/referral";
 import { activeBranch, activeConversation, effectivePlan, flushStudioPersist, pauseStudioPersist, resumeStudioPersist, useStudio } from "@/lib/store";
 import type { AgentTrace, ChatMessage, DeliverableKind, MediaAsset, MediaShot, PlanId, StudioMode, Verdict, WarningInfo } from "@/lib/types";
 import { uid } from "@/lib/utils";
@@ -109,7 +108,6 @@ export function StudioApp({
   const [warning, setWarning] = useState<WarningInfo | undefined>();
   const [workbenchOpen, setWorkbenchOpen] = useState(false);
   const [capacityNote, setCapacityNote] = useState<string | null>(null);
-  const [foundingLeft, setFoundingLeft] = useState(50);
   const lastPromptRef = useRef("");
   const abortRef = useRef<AbortController | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -173,25 +171,16 @@ export function StudioApp({
 
   useEffect(() => {
     if (!hydrated) return;
-    store.ensureReferralCode();
-    if (refCode) store.setReferredBy(refCode);
     if (plan === "pro" || plan === "premium") {
       store.clearFailedMedia();
     }
-    void fetchFounding(store.referral.code || undefined).then((s) => {
-      setFoundingLeft(s.remaining);
-      store.setConversions(s.conversions);
-      if (s.referrerProUntil && s.referrerProUntil > Date.now()) {
-        store.applyReferrerMonth(s.referrerProUntil);
-      }
-    });
     if (paidParam === "pro" || paidParam === "premium") {
       store.setPlan(paidParam);
       store.clearFailedMedia();
       toast.success(`${paidParam === "pro" ? "Pro" : "Premium"} is active on this device.`);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated, store.plan, refCode, paidParam]);
+  }, [hydrated, store.plan, paidParam]);
 
   useEffect(() => {
     setClipLength(VIDEO_LIMITS[plan].max === 5 ? 5 : Math.min(clipLength, VIDEO_LIMITS[plan].max) as VideoLength);
@@ -1195,23 +1184,6 @@ export function StudioApp({
         open={billingOpen}
         onOpenChange={setBillingOpen}
         plan={plan}
-        foundingAvailable={Boolean(store.referral.referredBy) && foundingLeft > 0 && !store.entitlement.founding}
-        onFounding={() => {
-          void (async () => {
-            const code = store.ensureReferralCode();
-            const res = await claimFounding({ code, referredBy: store.referral.referredBy });
-            if (!res.ok) {
-              toast.error(res.error ?? "Referral claim unavailable.");
-              setFoundingLeft(res.remaining);
-              return;
-            }
-            store.applyFounding(Date.now() + MONTH_MS * 3);
-            setFoundingLeft(res.remaining);
-            store.clearFailedMedia();
-            toast.success("Referral plan credit applied on this device.");
-            setBillingOpen(false);
-          })();
-        }}
         onGrant={(next: PlanId) => {
           store.setPlan(next);
           store.clearFailedMedia();

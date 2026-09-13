@@ -351,15 +351,11 @@ export function BillingDrawer({
   onOpenChange,
   plan,
   onGrant,
-  foundingAvailable = false,
-  onFounding,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   plan: PlanId;
   onGrant: (plan: PlanId) => void;
-  foundingAvailable?: boolean;
-  onFounding?: () => void;
 }) {
   const owner = readOwner();
   const [ownerCode, setOwnerCode] = useState("");
@@ -429,8 +425,6 @@ export function BillingDrawer({
             </Button>
           </form>
         )}
-        {/* Founding-referral CTA is intentionally hidden; props stay wired for a future re-enable. */}
-        {foundingAvailable && onFounding ? null : null}
         <div className="space-y-3">
           {PLANS.map((p) => {
             const current = p.id === plan;
