@@ -489,6 +489,8 @@ export type StreamMeshRequest = {
   attachments?: Partial<Attachments> | Attachments;
   /** Lead model tier (basic|standard|high|max) — clamped to plan server-side. */
   tier?: string;
+  /** Explicit catalog model id — clamped by the engine. Preferred over `tier`. */
+  model?: string;
   /** Output power low|mid|max. */
   power?: string;
   /** Which of the four seats run this turn (idle seats are omitted). */

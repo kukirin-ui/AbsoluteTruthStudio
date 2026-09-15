@@ -68,9 +68,19 @@ test("MESH_MODEL_* env pin is owner-only and does not raise a visitor ceiling", 
   );
 });
 
-test("owner bypasses the plan ceiling through resolveMeshModel", () => {
-  assert.equal(resolveMeshModel("openai", "free", "max", {}, true), "gpt-6-astra");
-  assert.equal(resolveMeshModel("openai", "free", "max", {}, false), "gpt-5.6-luna");
+test("resolveMeshModel prefers an explicit catalog model id, then clamps", () => {
+  assert.equal(
+    resolveMeshModel("openai", "free", "basic", {}, false, "gpt-6-astra"),
+    "gpt-5.6-luna",
+  );
+  assert.equal(
+    resolveMeshModel("anthropic", "premium", undefined, {}, false, "claude-sonnet-5"),
+    "claude-sonnet-5",
+  );
+  assert.equal(
+    resolveMeshModel("openai", "free", "max", {}, true, "gpt-6-astra"),
+    "gpt-6-astra",
+  );
 });
 
 test("tierOptionsForPlan gives labeled, selectable options", () => {

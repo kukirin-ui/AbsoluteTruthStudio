@@ -449,8 +449,8 @@ export function EmptyState({
           </h1>
           <p className="max-w-prose text-sm leading-relaxed text-muted md:text-base">
             Claude, ChatGPT, Gemini, and Grok work one brief in lockstep and hand you a verified answer or a real,
-            running React app. Pick how many run, who sits each seat, and how hard they push — from a lean baseline
-            to the highest tier known today.
+            running React app. Expand a seat to pick its catalog model — the engine clamps every pick to your plan
+            ceiling. A personal key changes who pays, not how high you can go.
           </p>
         </div>
       )}

@@ -16,14 +16,17 @@ import {
 import { seatUiLabel } from "@/lib/mesh";
 import type { PluginWallet } from "@/lib/plugins";
 import { PROVIDER_GUIDE, providerForAgentId, type OutputPower } from "@/lib/providers";
-import { tierOptionsForPlan, type ModelTier } from "@/lib/tiers";
+import { catalogProviderLabel, catalogModel, resolvedSeatModelId, userContextForPlan } from "@/lib/engine";
+import type { ModelTier } from "@/lib/tiers";
+import { readOwner } from "@/lib/owner";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { PauseCircle, Power, ShieldAlert } from "lucide-react";
+import { ModelLadder, SeatControl, planCeilingLabel } from "@/components/studio/studio-ui";
 
 type SeatTiers = Record<AgentId, ModelTier | null>;
+type SeatModels = Record<AgentId, string | null>;
 type ActiveSeats = Record<AgentId, boolean>;
 const POWER_LEVELS: OutputPower[] = ["low", "mid", "max"];
 
@@ -37,13 +40,16 @@ export function AgentMesh({
   plan,
   wallet,
   seatTier,
+  seatModel,
   activeSeats,
   power,
   renderPaused = false,
+  hasByok = false,
   onSeat,
   onAttach,
   onUnlock,
-  onSeatTier,
+  onSeatModel,
+  onRequestByok,
   onToggleSeat,
   onPower,
 }: {
@@ -56,14 +62,18 @@ export function AgentMesh({
   plan: PlanId;
   wallet: PluginWallet;
   seatTier?: SeatTiers;
+  seatModel?: SeatModels;
   activeSeats?: ActiveSeats;
   power?: OutputPower;
   /** Visual/render path paused or waiting — Visual seat shows RENDER PAUSED, not fake LIVE */
   renderPaused?: boolean;
+  hasByok?: boolean;
   onSeat: (seat: AgentId, id: string) => boolean;
   onAttach: (seat: AgentId, id: string) => boolean;
   onUnlock: (item: CatalogItem) => void;
   onSeatTier?: (seat: AgentId, tier: ModelTier | null) => void;
+  onSeatModel?: (seat: AgentId, modelId: string) => void;
+  onRequestByok?: () => void;
   onToggleSeat?: (seat: AgentId) => void;
   onPower?: (power: OutputPower) => void;
 }) {
@@ -72,7 +82,19 @@ export function AgentMesh({
   useEffect(() => setMounted(true), []);
   void streaming; // parent drives LIVE via trace.status === "streaming"
 
+  const owner = mounted && readOwner();
+  const user = userContextForPlan(plan, owner);
   const activeCount = activeSeats ? SEAT_ORDER.filter((s) => activeSeats[s]).length : 4;
+
+  function modelIdFor(seat: AgentId) {
+    const seated = seatedItem(roster, seat);
+    return resolvedSeatModelId(
+      seatModel?.[seat],
+      seatTier?.[seat],
+      user,
+      catalogProviderLabel(providerForAgentId(seated.id)),
+    );
+  }
 
   return (
     <div className="relative z-10 isolate bg-bg">
@@ -96,25 +118,23 @@ export function AgentMesh({
               </button>
             ))}
           </div>
+          {!compact ? (
+            <span className="ml-auto font-mono text-[10px] tracking-wide text-subtle normal-case">
+              PLAN: {planCeilingLabel(plan, owner)}
+            </span>
+          ) : null}
         </div>
       ) : null}
+      {compact ? (
       <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
         {SEAT_ORDER.map((seat) => {
           const seated = seatedItem(roster, seat);
           const meta = SEAT_META[seat];
           const seatActive = activeSeats ? activeSeats[seat] !== false : true;
-          const selectedTier = seatTier?.[seat] ?? null;
-          // The three reasoning seats show the exact model for the plan's tier
-          // (Free -> free model, Pro -> higher, Premium -> highest). The Visual
-          // seat is a render engine, so it shows its own name.
-          const seatTierOpts = tierOptionsForPlan(providerForAgentId(seated.id), plan);
-          const tierModel =
-            (selectedTier
-              ? seatTierOpts.find((o) => o.tier === selectedTier)
-              : seatTierOpts.find((o) => o.isDefault)
-            )?.label ?? seated.name;
+          const resolvedId = modelIdFor(seat);
+          const resolvedName = catalogModel(resolvedId)?.name;
           const isProviderSeat = ["Anthropic", "OpenAI", "Google", "xAI"].includes(seated.brand) && seat !== "visual";
-          const modelLabel = isProviderSeat && mounted ? tierModel : seated.name;
+          const modelLabel = isProviderSeat && mounted ? (resolvedName ?? seated.name) : seated.name;
           const raw = traces.find((t) => t.id === seat) ?? {
             id: seat,
             status: "idle" as const,
@@ -129,7 +149,6 @@ export function AgentMesh({
           const live = ui === "LIVE";
           const paused = ui === "RENDER PAUSED";
           const flagged = seat === "security" && (trace.status === "flagged" || verdict === "WARN");
-          const tools = attachedItems(attachments, seat);
           const glow = meta.glow;
           return (
             <article
@@ -138,7 +157,7 @@ export function AgentMesh({
               data-seat-state={ui}
               className={cn(
                 "seat-tab relative overflow-hidden rounded-xl bg-panel p-2 text-left shadow-[0_0_0_1px_rgb(255_255_255/0.06)] md:p-3",
-                compact ? "min-h-11" : "min-h-[5.5rem] md:min-h-[7.25rem]",
+                "min-h-11",
                 !seatActive && "opacity-45",
                 live && "agent-working",
                 paused && "shadow-[0_0_0_1px_rgb(245_158_11/0.45),0_0_20px_rgb(245_158_11/0.12)]",
@@ -195,23 +214,89 @@ export function AgentMesh({
                   </div>
                 </div>
               </header>
-              {compact ? null : (
-                <p className="mt-1.5 line-clamp-2 pl-2 font-mono text-[11px] leading-relaxed text-muted">
+            </article>
+          );
+        })}
+      </div>
+      ) : (
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2" data-agent-matrix>
+        {SEAT_ORDER.map((seat) => {
+          const seated = seatedItem(roster, seat);
+          const meta = SEAT_META[seat];
+          const seatActive = activeSeats ? activeSeats[seat] !== false : true;
+          const resolvedId = modelIdFor(seat);
+          const raw = traces.find((t) => t.id === seat) ?? {
+            id: seat,
+            status: "idle" as const,
+            content: "",
+          };
+          const status =
+            seat === "visual" && renderPaused && raw.status !== "streaming"
+              ? ("render_paused" as const)
+              : raw.status;
+          const trace = { ...raw, status };
+          const ui = seatUiLabel(trace.status);
+          const paused = ui === "RENDER PAUSED";
+          const flagged = seat === "security" && (trace.status === "flagged" || verdict === "WARN");
+          const tools = attachedItems(attachments, seat);
+          return (
+            <div
+              key={seat}
+              data-seat={seat}
+              data-seat-state={ui}
+              className={cn(!seatActive && "opacity-45")}
+            >
+              <SeatControl
+                seat={seat}
+                selectedModelId={mounted ? resolvedId : "claude-haiku-4-5"}
+                user={user}
+                hasByok={hasByok}
+                onSelectModel={(modelId) => onSeatModel?.(seat, modelId)}
+                onRequestByok={() => onRequestByok?.()}
+                headerRight={
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    <StatusPill status={flagged && !paused ? "flagged" : !seatActive ? "idle" : trace.status} />
+                    <div className="flex items-center gap-1">
+                      {onToggleSeat ? (
+                        <button
+                          type="button"
+                          onClick={() => onToggleSeat(seat)}
+                          title={seatActive ? "Idle this agent" : "Activate this agent"}
+                          aria-pressed={seatActive}
+                          className={cn(
+                            "grid size-7 place-items-center rounded-md hover:bg-elevated",
+                            seatActive ? "text-emerald-glow" : "text-subtle",
+                          )}
+                        >
+                          <Power className="size-3.5" />
+                        </button>
+                      ) : null}
+                      <button
+                        type="button"
+                        onClick={() => setPick(seat)}
+                        className="h-7 rounded-md px-2 text-[10px] tracking-wide text-indigo-glow uppercase hover:bg-elevated"
+                      >
+                        Swap
+                      </button>
+                    </div>
+                  </div>
+                }
+              >
+                <p className="px-3 pb-3 font-mono text-[11px] leading-relaxed text-muted md:px-4">
                   {trace.content
                     ? trace.content.replace(/\s+/g, " ").slice(0, 140)
                     : paused
                       ? "Render paused — waiting on the visual path"
                       : tools.length
                         ? tools.map((t) => t.name).join(" · ")
-                        : live
-                          ? "Awaiting stream…"
-                          : meta.framework}
+                        : meta.framework}
                 </p>
-              )}
-            </article>
+              </SeatControl>
+            </div>
           );
         })}
       </div>
+      )}
 
       <SeatPicker
         seat={pick}
@@ -220,8 +305,9 @@ export function AgentMesh({
         attachments={attachments}
         plan={plan}
         wallet={wallet}
-        currentTier={pick ? (seatTier?.[pick] ?? null) : null}
-        onSeatTier={onSeatTier}
+        currentModelId={pick ? modelIdFor(pick) : null}
+        user={user}
+        onSeatModel={onSeatModel}
         onSeat={(seat, id) => {
           const ok = onSeat(seat, id);
           if (ok) setPick(null);
@@ -246,8 +332,9 @@ function SeatPicker({
   attachments,
   plan,
   wallet,
-  currentTier,
-  onSeatTier,
+  currentModelId,
+  user,
+  onSeatModel,
   onSeat,
   onAttach,
   onUnlock,
@@ -258,8 +345,9 @@ function SeatPicker({
   attachments: Attachments;
   plan: PlanId;
   wallet: PluginWallet;
-  currentTier?: ModelTier | null;
-  onSeatTier?: (seat: AgentId, tier: ModelTier | null) => void;
+  currentModelId?: string | null;
+  user: ReturnType<typeof userContextForPlan>;
+  onSeatModel?: (seat: AgentId, modelId: string) => void;
   onSeat: (seat: AgentId, id: string) => boolean;
   onAttach: (seat: AgentId, id: string) => boolean;
   onUnlock: (item: CatalogItem) => void;
@@ -271,55 +359,30 @@ function SeatPicker({
   const tools = toolsForSeat(seat);
   const attached = new Set(attachments[seat] ?? []);
   const leadProvider = providerForAgentId(current.id);
-  const tierOptions = tierOptionsForPlan(leadProvider, plan);
   const guide = PROVIDER_GUIDE[leadProvider];
-  // Tiers + provider guide only apply to the three reasoning seats, not the
-  // Visual render seat.
   const showProvider =
     seat !== "visual" && ["Anthropic", "OpenAI", "Google", "xAI"].includes(current.brand);
+  const selectedId =
+    currentModelId ??
+    resolvedSeatModelId(null, null, user, catalogProviderLabel(leadProvider));
 
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
       <DialogContent
         title={`Swap agent · ${meta.label}`}
-        description={`${meta.framework} The seats stay in lockstep. Swap picks who runs this tab; each agent shows its exact model, and your plan sets the tier ceiling.`}
+        description={`${meta.framework} The seats stay in lockstep. Swap picks who runs this tab; the model ladder is clamped to your plan ceiling.`}
         className="max-h-[min(88dvh,40rem)] w-[min(100%-1.5rem,36rem)] overflow-y-auto"
       >
         <p className="mb-3 text-xs text-muted">
           Live now: <span className="text-fg">{current.name}</span> · {current.brand}
         </p>
-        {onSeatTier && showProvider ? (
+        {onSeatModel && showProvider ? (
           <div className="mb-5">
-            <p className="mb-2 text-[10px] tracking-wider text-subtle uppercase">
-              Model tier · {plan === "premium" ? "up to highest" : plan === "pro" ? "up to Pro ceiling" : "basic (Free)"}
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {tierOptions.map((opt) => {
-                const on = (currentTier ?? tierOptions.at(-1)?.tier) === opt.tier;
-                return (
-                  <button
-                    key={opt.tier}
-                    type="button"
-                    onClick={() => onSeatTier(seat, opt.isDefault ? null : opt.tier)}
-                    title={opt.model}
-                    className={cn(
-                      "rounded-lg px-2.5 py-1.5 text-left text-[11px] leading-tight transition-colors",
-                      on
-                        ? "bg-elevated text-fg shadow-[0_0_0_1px_rgb(99_102_241/0.4)]"
-                        : "bg-elevated/50 text-muted hover:text-fg",
-                    )}
-                  >
-                    <span className="block">{opt.label}</span>
-                    <span className="block font-mono text-[9px] text-subtle">{opt.model}</span>
-                  </button>
-                );
-              })}
-            </div>
-            <p className="mt-1.5 text-[10px] text-subtle">
-              {plan === "free"
-                ? "Upgrade to Pro or Premium to reach higher tiers. A personal API key does not raise this ceiling."
-                : "Downgrade any seat to save; upgrade back anytime. BYOK changes who pays, not the ceiling."}
-            </p>
+            <ModelLadder
+              selectedModelId={selectedId}
+              user={user}
+              onSelect={(modelId) => onSeatModel(seat, modelId)}
+            />
           </div>
         ) : null}
         {showProvider ? (
