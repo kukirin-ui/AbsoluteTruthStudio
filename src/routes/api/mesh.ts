@@ -162,8 +162,8 @@ export const Route = createFileRoute("/api/mesh")({
         // Turn on VITE_AUTH_ENABLED (accounts) to meter real, per-user visitors.
         const ownerMode = userId === DEV_USER_ID;
 
-        // Funded by credits OR the user's own BYOK key for the lead provider
-        // (their own key for any model — including ones beyond the four seats).
+        // Funded by credits OR the user's own BYOK key for the lead provider.
+        // BYOK only changes who pays — the plan ceiling still clamps the model.
         let creditCents = 0;
         if (!ownerMode) {
           try {
@@ -321,13 +321,13 @@ export const Route = createFileRoute("/api/mesh")({
           : ({
               kind: "provider" as const,
               provider: leadProvider,
-              model: resolveMeshModel(leadProvider, plan, body.tier),
+              model: resolveMeshModel(leadProvider, plan, body.tier, process.env, ownerMode),
               apiKey: (apiKey ?? "") as string,
             });
 
         // Per-plan tier → exact model id (Premium=highest, Pro=few-below, Free=basic;
         // a client-sent downgrade is clamped to the plan ceiling).
-        const xaiModel = resolveMeshModel("xai", plan, body.tier);
+        const xaiModel = resolveMeshModel("xai", plan, body.tier, process.env, ownerMode);
         const xaiFallback = () => ({
           url: "https://api.x.ai/v1/chat/completions",
           headers: {
@@ -350,7 +350,7 @@ export const Route = createFileRoute("/api/mesh")({
                 ...buildChatFetch({
                   provider: routing.provider,
                   apiKey: routing.apiKey,
-                  model: resolveMeshModel(routing.provider, plan, body.tier),
+                  model: resolveMeshModel(routing.provider, plan, body.tier, process.env, ownerMode),
                   system,
                   messages,
                   maxTokens,

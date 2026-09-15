@@ -395,9 +395,9 @@ export function BillingDrawer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" title="Plans" className="left-auto right-0 w-[min(100%,26rem)]">
         <p className="mb-5 text-sm text-muted">
-          {owner
-            ? "Owner mode — every tier and plugin is unlocked for you. Visitors start on the basic tier and unlock Pro or Premium through Stripe, or bring their own keys."
-            : "Pro and Premium are monthly subscriptions billed through Stripe. Tap checkout, then Activate on this device. You can also bring your own keys (BYOK) on any plan."}
+            {owner
+            ? "Owner mode — every tier and plugin is unlocked for you. Visitors start on the basic tier and unlock Pro or Premium through Stripe. Their own keys (BYOK) pay for calls but do not raise the plan ceiling."
+            : "Pro and Premium are monthly subscriptions billed through Stripe. Tap checkout, then Activate on this device. You can also bring your own keys (BYOK) on any plan — a key pays for the call, it does not raise the model ceiling."}
         </p>
         {owner ? null : (
           <form

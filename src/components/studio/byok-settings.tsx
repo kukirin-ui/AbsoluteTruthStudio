@@ -107,7 +107,8 @@ export function ByokSettingsDrawer({
       <SheetContent side="right" title="BYOK keys" className="left-auto right-0 w-[min(100%,26rem)]">
         <p className="mb-4 text-sm text-muted">
           Bring your own provider keys. Secrets are encrypted server-side. This UI only shows
-          provider, label, and version — never the key itself after save.
+          provider, label, and version — never the key itself after save. A personal key pays
+          for the call; it does not raise your plan's model-tier ceiling.
         </p>
 
         {banner ? (
