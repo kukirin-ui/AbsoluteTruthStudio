@@ -93,12 +93,23 @@ export function resolveMeshModel(
   requestedTier: unknown,
   env: Record<string, string | undefined> = process.env,
   isOwner = false,
+  requestedModelId?: string,
 ): string {
   const pinned = env[modelEnvName(provider)]?.trim();
   if (isOwner && pinned) return pinned;
+  if (requestedModelId) {
+    try {
+      return resolveAllowedModel(requestedModelId, {
+        isOwner,
+        plan: planCeilingTier(plan),
+      }).allowedModelId;
+    } catch {
+      // Unknown to non-owners — fall through to the tier map.
+    }
+  }
   const wanted = isModelTier(requestedTier) ? requestedTier : defaultTierForPlan(plan);
-  const requestedModelId = PROVIDER_TIERS[provider][wanted].model;
-  return resolveAllowedModel(requestedModelId, {
+  const requestedFromTier = PROVIDER_TIERS[provider][wanted].model;
+  return resolveAllowedModel(requestedFromTier, {
     isOwner,
     plan: planCeilingTier(plan),
   }).allowedModelId;

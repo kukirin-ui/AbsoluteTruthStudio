@@ -22,6 +22,7 @@ import {
   resolveLeadRouting,
   type OutputPower,
 } from "@/lib/providers";
+import { catalogModel, ceilingForPlan, meshProviderId, resolveAllowedModel } from "@/lib/engine";
 import { resolveMeshModel } from "@/lib/tiers";
 
 type Incoming = {
@@ -30,6 +31,7 @@ type Incoming = {
   intent?: string;
   power?: string;
   tier?: string;
+  model?: string;
   duration?: number;
   specCompiler?: boolean;
   deepAudit?: boolean;
@@ -151,16 +153,32 @@ export const Route = createFileRoute("/api/mesh")({
           return jsonError(500, "Internal server error", "INTERNAL_ERROR");
         }
 
-        // Lead provider = who sits the Architect seat; it drives which real model
-        // the run calls, which owner/BYOK key funds it, and the funding check.
+        // Lead provider = the selected catalog model when present, else the
+        // Architect roster agent. It drives which real model the run calls,
+        // which owner/BYOK key funds it, and the funding check.
         const roster = normalizeRoster(body.roster);
-        const leadProvider = providerForAgentId(roster.architect);
-
-        // Auth-off (preview or an owner-only deploy) → every request is the shared
-        // dev user, running on the owner's own keys. There is no separate visitor
-        // to meter, so skip the credit gate and route straight to the owner keys.
-        // Turn on VITE_AUTH_ENABLED (accounts) to meter real, per-user visitors.
         const ownerMode = userId === DEV_USER_ID;
+        const requestedModel =
+          typeof body.model === "string" && body.model.trim() ? body.model.trim() : "";
+        let resolvedModelId: string | undefined;
+        if (requestedModel) {
+          try {
+            resolvedModelId = resolveAllowedModel(requestedModel, {
+              isOwner: ownerMode,
+              plan: ceilingForPlan(plan),
+            }).allowedModelId;
+          } catch (err) {
+            return jsonError(
+              400,
+              err instanceof Error ? err.message : "Unknown model requested",
+              "UNKNOWN_MODEL",
+            );
+          }
+        }
+        const catalogDef = resolvedModelId ? catalogModel(resolvedModelId) : undefined;
+        const leadProvider = catalogDef
+          ? meshProviderId(catalogDef.provider)
+          : providerForAgentId(roster.architect);
 
         // Funded by credits OR the user's own BYOK key for the lead provider.
         // BYOK only changes who pays — the plan ceiling still clamps the model.
@@ -316,12 +334,27 @@ export const Route = createFileRoute("/api/mesh")({
         // has no key for that provider). BYOK → the user's own key for the lead
         // provider, routed straight to that provider (no owner-key fallback).
         const fundedByCredits = ownerMode || creditCents > 0;
+        const providerLeadAgent =
+          leadProvider === "openai"
+            ? "chatgpt"
+            : leadProvider === "google"
+              ? "gemini"
+              : leadProvider === "anthropic"
+                ? "claude"
+                : "grok";
         const routing = fundedByCredits
-          ? resolveLeadRouting(roster.architect)
+          ? resolveLeadRouting(providerLeadAgent)
           : ({
               kind: "provider" as const,
               provider: leadProvider,
-              model: resolveMeshModel(leadProvider, plan, body.tier, process.env, ownerMode),
+              model: resolveMeshModel(
+                leadProvider,
+                plan,
+                body.tier,
+                process.env,
+                ownerMode,
+                resolvedModelId,
+              ),
               apiKey: (apiKey ?? "") as string,
             });
 
@@ -350,7 +383,14 @@ export const Route = createFileRoute("/api/mesh")({
                 ...buildChatFetch({
                   provider: routing.provider,
                   apiKey: routing.apiKey,
-                  model: resolveMeshModel(routing.provider, plan, body.tier, process.env, ownerMode),
+                  model: resolveMeshModel(
+                    routing.provider,
+                    plan,
+                    body.tier,
+                    process.env,
+                    ownerMode,
+                    resolvedModelId,
+                  ),
                   system,
                   messages,
                   maxTokens,

@@ -29,10 +29,12 @@ import {
   type Attachments,
   type Roster,
 } from "./catalog";
+import { catalogModel, clampStoredSeatModels, userContextForPlan } from "./engine";
 import type { ModelTier } from "./tiers";
 import type { OutputPower } from "./providers";
 
 export type SeatTiers = Record<AgentId, ModelTier | null>;
+export type SeatModels = Record<AgentId, string | null>;
 export type ActiveSeats = Record<AgentId, boolean>;
 
 /** null tier = "auto" (run at the plan's ceiling). */
@@ -50,12 +52,29 @@ export const DEFAULT_ACTIVE_SEATS: ActiveSeats = {
   security: true,
 };
 
+/** null model = auto (plan ceiling for the seated provider). */
+export const DEFAULT_SEAT_MODELS: SeatModels = {
+  architect: null,
+  visual: null,
+  coder: null,
+  security: null,
+};
+
 function normalizeSeatTiers(raw?: Partial<SeatTiers> | null): SeatTiers {
   const valid = new Set(["basic", "standard", "high", "max"]);
   const next: SeatTiers = { ...DEFAULT_SEAT_TIERS };
   for (const seat of SEAT_ORDER) {
     const v = raw?.[seat];
     next[seat] = typeof v === "string" && valid.has(v) ? (v as ModelTier) : null;
+  }
+  return next;
+}
+
+function normalizeSeatModels(raw?: Partial<SeatModels> | null): SeatModels {
+  const next: SeatModels = { ...DEFAULT_SEAT_MODELS };
+  for (const seat of SEAT_ORDER) {
+    const v = raw?.[seat];
+    next[seat] = typeof v === "string" && v.length > 0 ? v : null;
   }
   return next;
 }
@@ -136,6 +155,7 @@ function compactState(s: {
   roster: Roster;
   attachments: Attachments;
   seatTier: SeatTiers;
+  seatModel: SeatModels;
   activeSeats: ActiveSeats;
   power: OutputPower;
   conversations: Conversation[];
@@ -151,6 +171,7 @@ function compactState(s: {
     roster: normalizeRoster(s.roster),
     attachments: normalizeAttachments(s.attachments),
     seatTier: normalizeSeatTiers(s.seatTier),
+    seatModel: normalizeSeatModels(s.seatModel),
     activeSeats: normalizeActiveSeats(s.activeSeats),
     power: s.power,
     activeConversationId: s.activeConversationId,
@@ -212,6 +233,7 @@ type StudioState = {
   roster: Roster;
   attachments: Attachments;
   seatTier: SeatTiers;
+  seatModel: SeatModels;
   activeSeats: ActiveSeats;
   power: OutputPower;
   conversations: Conversation[];
@@ -220,6 +242,7 @@ type StudioState = {
   setPlan: (plan: PlanId) => void;
   setSeat: (seat: AgentId, catalogId: string) => boolean;
   setSeatTier: (seat: AgentId, tier: ModelTier | null) => void;
+  setSeatModel: (seat: AgentId, modelId: string | null) => void;
   toggleSeatActive: (seat: AgentId) => void;
   setPower: (power: OutputPower) => void;
   toggleAttachment: (seat: AgentId, catalogId: string) => boolean;
@@ -279,6 +302,7 @@ export const useStudio = create<StudioState>()(
         security: [...DEFAULT_ATTACHMENTS.security],
       },
       seatTier: { ...DEFAULT_SEAT_TIERS },
+      seatModel: { ...DEFAULT_SEAT_MODELS },
       activeSeats: { ...DEFAULT_ACTIVE_SEATS },
       power: "mid",
       conversations: [],
@@ -286,13 +310,30 @@ export const useStudio = create<StudioState>()(
       activeConversationId: null,
 
       setPlan: (plan) => {
-        set({ plan });
+        const user = userContextForPlan(plan, readOwner());
+        set((s) => ({
+          plan,
+          seatModel: clampStoredSeatModels(normalizeSeatModels(s.seatModel), user),
+        }));
         // Plan change is an explicit persist point (no ambient autosave).
         queueMicrotask(() => flushStudioPersist());
       },
 
       setSeatTier: (seat, tier) =>
-        set((s) => ({ seatTier: { ...s.seatTier, [seat]: tier } })),
+        set((s) => ({
+          seatTier: { ...s.seatTier, [seat]: tier },
+          // A raw tier pick clears an explicit model so auto/tier resolution takes over.
+          seatModel: { ...s.seatModel, [seat]: null },
+        })),
+
+      setSeatModel: (seat, modelId) =>
+        set((s) => {
+          const def = modelId ? catalogModel(modelId) : undefined;
+          return {
+            seatModel: { ...s.seatModel, [seat]: modelId },
+            seatTier: { ...s.seatTier, [seat]: def?.tier ?? s.seatTier[seat] },
+          };
+        }),
 
       toggleSeatActive: (seat) =>
         set((s) => {
@@ -605,8 +646,8 @@ export const useStudio = create<StudioState>()(
         })),
     }),
     {
-      name: "ats-studio-v6",
-      version: 6,
+      name: "ats-studio-v7",
+      version: 7,
       storage: createJSONStorage(() => memoryStorage),
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<StudioState>;
@@ -616,6 +657,7 @@ export const useStudio = create<StudioState>()(
           roster: normalizeRoster(p.roster),
           attachments: normalizeAttachments(p.attachments),
           seatTier: normalizeSeatTiers(p.seatTier),
+          seatModel: normalizeSeatModels(p.seatModel),
           activeSeats: normalizeActiveSeats(p.activeSeats),
           power: p.power === "low" || p.power === "max" ? p.power : "mid",
         };
@@ -630,6 +672,7 @@ export const useStudio = create<StudioState>()(
           roster: s.roster,
           attachments: s.attachments,
           seatTier: s.seatTier,
+          seatModel: s.seatModel,
           activeSeats: s.activeSeats,
           power: s.power,
           conversations: s.conversations,

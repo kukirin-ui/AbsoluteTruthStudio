@@ -60,11 +60,10 @@ import { activeBranch, activeConversation, effectivePlan, flushStudioPersist, pa
 import type { AgentTrace, ChatMessage, DeliverableKind, MediaAsset, MediaShot, PlanId, StudioMode, Verdict, WarningInfo } from "@/lib/types";
 import { uid } from "@/lib/utils";
 import { clampVideoLength, inferVideoLength, planShots, VIDEO_LIMITS, type VideoLength } from "@/lib/video-plan";
-import {
-  catalogOwnKey,
-  seatedItem,
-  type CatalogItem,
-} from "@/lib/catalog";
+import { catalogOwnKey, seatedItem, type CatalogItem } from "@/lib/catalog";
+import { catalogProviderLabel, resolvedSeatModelId, userContextForPlan } from "@/lib/engine";
+import { readOwner } from "@/lib/owner";
+import { providerForAgentId } from "@/lib/providers";
 import { filesBrief, imageRefs, type UserFile } from "@/lib/user-files";
 import { lookPrefix } from "@/lib/economics";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -538,6 +537,12 @@ export function StudioApp({
               roster: store.roster,
               attachments: store.attachments,
               tier: store.seatTier.architect ?? undefined,
+              model: resolvedSeatModelId(
+                store.seatModel.architect,
+                store.seatTier.architect,
+                userContextForPlan(plan, readOwner()),
+                catalogProviderLabel(providerForAgentId(seatedItem(store.roster, "architect").id)),
+              ),
               power: store.power,
               activeSeats: store.activeSeats,
               messages: [...history, { role: "user", content: meshText }],
@@ -987,9 +992,12 @@ export function StudioApp({
                   plan={plan}
                   wallet={store.wallet}
                   seatTier={store.seatTier}
+                  seatModel={store.seatModel}
                   activeSeats={store.activeSeats}
                   power={store.power}
-                  onSeatTier={(seat, tier) => store.setSeatTier(seat, tier)}
+                  hasByok={hasByok}
+                  onSeatModel={(seat, modelId) => store.setSeatModel(seat, modelId)}
+                  onRequestByok={() => setByokOpen(true)}
                   onToggleSeat={(seat) => store.toggleSeatActive(seat)}
                   onPower={(p) => store.setPower(p)}
                   renderPaused={liveMedia?.status === "failed"}

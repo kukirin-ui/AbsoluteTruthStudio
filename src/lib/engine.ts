@@ -4,10 +4,11 @@
  * Plan ceiling is the only gate. BYOK does not raise it — a personal key only
  * changes who pays for the call. Owners bypass the ceiling.
  */
-import type { PlanId } from "./types.ts";
+import type { AgentId, PlanId } from "./types.ts";
 
 export type PlanTier = "basic" | "standard" | "high" | "max";
 export type AgentRole = "architecture" | "visual" | "coder" | "verifier";
+export type MeshProviderId = "anthropic" | "openai" | "google" | "xai";
 
 export interface ModelDefinition {
   id: string;
@@ -35,6 +36,30 @@ export type AllowedModelResult = {
 };
 
 export const TIER_HIERARCHY: readonly PlanTier[] = ["basic", "standard", "high", "max"];
+
+/** UI ladder order — flagship first. */
+export const DISPLAY_TIER_ORDER: readonly PlanTier[] = ["max", "high", "standard", "basic"];
+
+export const ROLE_TO_SEAT: Record<AgentRole, AgentId> = {
+  architecture: "architect",
+  visual: "visual",
+  coder: "coder",
+  verifier: "security",
+};
+
+export const SEAT_TO_ROLE: Record<AgentId, AgentRole> = {
+  architect: "architecture",
+  visual: "visual",
+  coder: "coder",
+  security: "verifier",
+};
+
+export const CATALOG_PROVIDER_LABEL: Record<MeshProviderId, string> = {
+  anthropic: "Anthropic",
+  openai: "OpenAI",
+  google: "Google",
+  xai: "xAI",
+};
 
 /**
  * Catalog of call-able mesh models. Keys are the exact API model ids.
@@ -131,4 +156,106 @@ export function resolveSeatModel(seat: SeatState, user: UserContext): AllowedMod
 
 export function catalogModel(id: string): ModelDefinition | undefined {
   return MODEL_CATALOG[id];
+}
+
+export function isTierUnlocked(tier: PlanTier, user: UserContext): boolean {
+  return user.isOwner || tierRank(tier) <= tierRank(user.plan);
+}
+
+export function modelsInTier(tier: PlanTier): ModelDefinition[] {
+  return Object.values(MODEL_CATALOG).filter((m) => m.tier === tier);
+}
+
+export function meshProviderId(provider: string): MeshProviderId {
+  const p = provider.trim().toLowerCase();
+  if (p === "anthropic") return "anthropic";
+  if (p === "openai") return "openai";
+  if (p === "google") return "google";
+  return "xai";
+}
+
+export function catalogProviderLabel(provider: MeshProviderId): string {
+  return CATALOG_PROVIDER_LABEL[provider];
+}
+
+/** Highest model this user may run for a catalog provider label (Anthropic, …). */
+export function highestAllowedModel(
+  providerLabel: string,
+  user: UserContext,
+): ModelDefinition {
+  const ceiling = user.isOwner ? ("max" as PlanTier) : user.plan;
+  const candidates = Object.values(MODEL_CATALOG).filter((m) => m.provider === providerLabel);
+  const allowed = candidates.filter((m) => tierRank(m.tier) <= tierRank(ceiling));
+  allowed.sort((a, b) => tierRank(b.tier) - tierRank(a.tier));
+  return allowed[0] ?? fallbackForCeiling(user.isOwner ? "max" : user.plan, providerLabel);
+}
+
+/**
+ * Stored id (or null = auto) → engine-resolved id for this seat's seated provider.
+ */
+export function effectiveSeatModelId(
+  selectedModelId: string | null | undefined,
+  user: UserContext,
+  providerLabel: string,
+): AllowedModelResult {
+  if (!selectedModelId) {
+    const auto = highestAllowedModel(providerLabel, user);
+    return { allowedModelId: auto.id, wasClamped: false };
+  }
+  try {
+    return resolveAllowedModel(selectedModelId, user);
+  } catch {
+    const auto = highestAllowedModel(providerLabel, user);
+    return {
+      allowedModelId: auto.id,
+      wasClamped: true,
+      reason: clampReason(user.plan),
+    };
+  }
+}
+
+/** Resolve a seat's live model from an explicit id, a stored tier, or plan auto. */
+export function resolvedSeatModelId(
+  selectedModelId: string | null | undefined,
+  selectedTier: PlanTier | null | undefined,
+  user: UserContext,
+  providerLabel: string,
+): string {
+  if (selectedModelId) {
+    return effectiveSeatModelId(selectedModelId, user, providerLabel).allowedModelId;
+  }
+  if (selectedTier) {
+    const candidates = Object.values(MODEL_CATALOG).filter((m) => m.provider === providerLabel);
+    const exact = candidates.find((m) => m.tier === selectedTier);
+    const fallback =
+      exact ??
+      candidates
+        .filter((m) => tierRank(m.tier) <= tierRank(selectedTier))
+        .sort((a, b) => tierRank(b.tier) - tierRank(a.tier))[0];
+    if (fallback) {
+      try {
+        return resolveAllowedModel(fallback.id, user).allowedModelId;
+      } catch {
+        /* fall through */
+      }
+    }
+  }
+  return highestAllowedModel(providerLabel, user).id;
+}
+
+export type SeatModelMap = Record<AgentId, string | null>;
+
+export function clampStoredSeatModels(models: SeatModelMap, user: UserContext): SeatModelMap {
+  const next: SeatModelMap = { ...models };
+  for (const seat of Object.keys(next) as AgentId[]) {
+    const id = next[seat];
+    if (!id) continue;
+    try {
+      const resolved = resolveAllowedModel(id, user);
+      next[seat] = resolved.allowedModelId;
+    } catch {
+      next[seat] = null;
+    }
+  }
+  return next;
 }

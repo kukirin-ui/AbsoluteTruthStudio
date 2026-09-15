@@ -2,13 +2,30 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { PROVIDER_TIERS, TIER_ORDER } from "./tiers.ts";
 import {
+  DISPLAY_TIER_ORDER,
   MODEL_CATALOG,
+  ROLE_TO_SEAT,
   ceilingForPlan,
+  clampStoredSeatModels,
+  effectiveSeatModelId,
+  highestAllowedModel,
+  isTierUnlocked,
+  meshProviderId,
+  modelsInTier,
   resolveAllowedModel,
   resolveSeatModel,
+  resolvedSeatModelId,
   userContextForPlan,
   type SeatState,
 } from "./engine.ts";
+
+test("resolvedSeatModelId prefers an explicit id, then a stored tier", () => {
+  const free = userContextForPlan("free", false);
+  assert.equal(resolvedSeatModelId("gpt-6-astra", null, free, "OpenAI"), "gpt-5.6-luna");
+  assert.equal(resolvedSeatModelId(null, "basic", free, "Anthropic"), "claude-haiku-4-5");
+  const pro = userContextForPlan("pro", false);
+  assert.equal(resolvedSeatModelId(null, null, pro, "Anthropic"), "claude-opus-5");
+});
 
 test("owner bypasses the ceiling, including unknown model ids", () => {
   const owner = { isOwner: true, plan: "basic" as const };
@@ -90,4 +107,60 @@ test("MODEL_CATALOG covers every provider-tier slot", () => {
       assert.ok(MODEL_CATALOG[id], `missing catalog entry for ${provider}/${tier} (${id})`);
     }
   }
+});
+
+test("role ↔ seat mapping matches the four-agent matrix", () => {
+  assert.equal(ROLE_TO_SEAT.architecture, "architect");
+  assert.equal(ROLE_TO_SEAT.verifier, "security");
+  assert.deepEqual(DISPLAY_TIER_ORDER, ["max", "high", "standard", "basic"]);
+});
+
+test("isTierUnlocked respects plan ceiling; owners see every tier", () => {
+  const free = userContextForPlan("free", false);
+  assert.equal(isTierUnlocked("basic", free), true);
+  assert.equal(isTierUnlocked("high", free), false);
+  assert.equal(isTierUnlocked("max", { isOwner: true, plan: "basic" }), true);
+});
+
+test("modelsInTier lists catalog entries for that ceiling rung", () => {
+  const basic = modelsInTier("basic").map((m) => m.id).sort();
+  assert.ok(basic.includes("claude-haiku-4-5"));
+  assert.ok(basic.includes("gpt-5.6-luna"));
+  assert.equal(modelsInTier("max").some((m) => m.id === "gpt-6-astra"), true);
+});
+
+test("highestAllowedModel is the plan ceiling for that provider", () => {
+  const free = userContextForPlan("free", false);
+  assert.equal(highestAllowedModel("OpenAI", free).id, "gpt-5.6-luna");
+  const pro = userContextForPlan("pro", false);
+  assert.equal(highestAllowedModel("Anthropic", pro).id, "claude-opus-5");
+  const owner = { isOwner: true, plan: "basic" as const };
+  assert.equal(highestAllowedModel("OpenAI", owner).id, "gpt-6-astra");
+});
+
+test("effectiveSeatModelId auto-picks the ceiling; stored ids still clamp", () => {
+  const free = userContextForPlan("free", false);
+  assert.equal(effectiveSeatModelId(null, free, "Anthropic").allowedModelId, "claude-haiku-4-5");
+  const clamped = effectiveSeatModelId("gpt-6-astra", free, "OpenAI");
+  assert.equal(clamped.wasClamped, true);
+  assert.equal(clamped.allowedModelId, "gpt-5.6-luna");
+});
+
+test("clampStoredSeatModels never leaves a visitor above the ceiling", () => {
+  const free = userContextForPlan("free", false);
+  const next = clampStoredSeatModels(
+    { architect: "claude-fable-5-1", visual: null, coder: "gpt-6-astra", security: "not-a-model" },
+    free,
+  );
+  assert.equal(next.architect, "claude-haiku-4-5");
+  assert.equal(next.coder, "gpt-5.6-luna");
+  assert.equal(next.security, null);
+  assert.equal(next.visual, null);
+});
+
+test("meshProviderId maps catalog labels onto mesh providers", () => {
+  assert.equal(meshProviderId("Anthropic"), "anthropic");
+  assert.equal(meshProviderId("OpenAI"), "openai");
+  assert.equal(meshProviderId("Google"), "google");
+  assert.equal(meshProviderId("xAI"), "xai");
 });
