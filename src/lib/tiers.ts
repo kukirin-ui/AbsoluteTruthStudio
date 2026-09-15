@@ -1,16 +1,15 @@
 /**
  * Per-plan model tiers with EXACT provider model ids.
  *
- * Business rule:
+ * Business rule (enforced by `src/lib/engine.ts`, the availability source of truth):
  *   - Premium  → ceiling = "max" (the highest tier known today), default = max.
  *   - Pro      → ceiling = "high" (a few tiers below Premium, so Pro sees what
  *                Premium can do), default = high.
  *   - Free     → ceiling = "basic" only.
  * On every plan a seat may be downgraded to any tier at or below the ceiling.
- *
- * Any tier's model id is overridable live via MESH_MODEL_<PROVIDER> in Vercel
- * (that env value pins the model regardless of tier — the "update any day" lever).
+ * BYOK never raises the ceiling. MESH_MODEL_* env pins are owner-only.
  */
+import { ceilingForPlan, resolveAllowedModel } from "./engine.ts";
 import type { MeshProvider } from "./providers";
 import type { PlanId } from "./types";
 
@@ -54,9 +53,7 @@ export const PROVIDER_TIERS: Record<MeshProvider, Record<ModelTier, TierEntry>> 
 
 /** Highest tier a plan may reach. */
 export function planCeilingTier(plan: PlanId): ModelTier {
-  if (plan === "premium") return "max";
-  if (plan === "pro") return "high";
-  return "basic";
+  return ceilingForPlan(plan);
 }
 
 /** Default tier for a plan (its ceiling — best output out of the box). */
@@ -86,20 +83,25 @@ function isModelTier(value: unknown): value is ModelTier {
 
 /**
  * Resolve the exact model id to call:
- *   1. MESH_MODEL_<PROVIDER> env override wins (owner pin).
- *   2. otherwise the requested tier, clamped to the plan ceiling (default = ceiling).
+ *   1. Owner + MESH_MODEL_<PROVIDER> env pin wins (live "update any day" lever).
+ *   2. otherwise the requested tier mapped to a catalog id, then clamped by
+ *      `resolveAllowedModel` — BYOK is not consulted.
  */
 export function resolveMeshModel(
   provider: MeshProvider,
   plan: PlanId,
   requestedTier: unknown,
   env: Record<string, string | undefined> = process.env,
+  isOwner = false,
 ): string {
   const pinned = env[modelEnvName(provider)]?.trim();
-  if (pinned) return pinned;
+  if (isOwner && pinned) return pinned;
   const wanted = isModelTier(requestedTier) ? requestedTier : defaultTierForPlan(plan);
-  const tier = clampTierToPlan(wanted, plan);
-  return PROVIDER_TIERS[provider][tier].model;
+  const requestedModelId = PROVIDER_TIERS[provider][wanted].model;
+  return resolveAllowedModel(requestedModelId, {
+    isOwner,
+    plan: planCeilingTier(plan),
+  }).allowedModelId;
 }
 
 /** UI-facing tier options for a provider under a plan (label + model + selectable). */

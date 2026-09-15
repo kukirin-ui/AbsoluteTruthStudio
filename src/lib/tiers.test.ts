@@ -57,11 +57,20 @@ test("resolveMeshModel honors a downgrade within the plan, clamps above it", () 
   assert.equal(resolveMeshModel("openai", "pro", "max", {}), "gpt-5.6-sol");
 });
 
-test("MESH_MODEL_* env override wins over tier", () => {
+test("MESH_MODEL_* env pin is owner-only and does not raise a visitor ceiling", () => {
   assert.equal(
-    resolveMeshModel("anthropic", "free", "basic", { MESH_MODEL_ANTHROPIC: "claude-custom" }),
+    resolveMeshModel("anthropic", "free", "basic", { MESH_MODEL_ANTHROPIC: "claude-custom" }, true),
     "claude-custom",
   );
+  assert.equal(
+    resolveMeshModel("anthropic", "free", "max", { MESH_MODEL_ANTHROPIC: "claude-custom" }, false),
+    "claude-haiku-4-5",
+  );
+});
+
+test("owner bypasses the plan ceiling through resolveMeshModel", () => {
+  assert.equal(resolveMeshModel("openai", "free", "max", {}, true), "gpt-6-astra");
+  assert.equal(resolveMeshModel("openai", "free", "max", {}, false), "gpt-5.6-luna");
 });
 
 test("tierOptionsForPlan gives labeled, selectable options", () => {
