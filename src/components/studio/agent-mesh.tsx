@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { AgentId, AgentTrace, PlanId, Verdict } from "@/lib/types";
 import {
   SEAT_META,
@@ -68,6 +68,8 @@ export function AgentMesh({
   onPower?: (power: OutputPower) => void;
 }) {
   const [pick, setPick] = useState<AgentId | null>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   void streaming; // parent drives LIVE via trace.status === "streaming"
 
   const activeCount = activeSeats ? SEAT_ORDER.filter((s) => activeSeats[s]).length : 4;
@@ -112,7 +114,7 @@ export function AgentMesh({
               : seatTierOpts.find((o) => o.isDefault)
             )?.label ?? seated.name;
           const isProviderSeat = ["Anthropic", "OpenAI", "Google", "xAI"].includes(seated.brand) && seat !== "visual";
-          const modelLabel = isProviderSeat ? tierModel : seated.name;
+          const modelLabel = isProviderSeat && mounted ? tierModel : seated.name;
           const raw = traces.find((t) => t.id === seat) ?? {
             id: seat,
             status: "idle" as const,
