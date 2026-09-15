@@ -315,8 +315,8 @@ function SeatPicker({
             </div>
             <p className="mt-1.5 text-[10px] text-subtle">
               {plan === "free"
-                ? "Upgrade to Pro or Premium to reach higher tiers."
-                : "Downgrade any seat to save; upgrade back anytime."}
+                ? "Upgrade to Pro or Premium to reach higher tiers. A personal API key does not raise this ceiling."
+                : "Downgrade any seat to save; upgrade back anytime. BYOK changes who pays, not the ceiling."}
             </p>
           </div>
         ) : null}

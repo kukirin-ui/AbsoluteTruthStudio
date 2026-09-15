@@ -22,7 +22,7 @@ function PluginsPage() {
       <p className="text-sm text-muted">
         Each seat runs a real frontier model — Claude, ChatGPT, Gemini, or Grok — routed to that provider on your
         credits or your own key (BYOK). Agent-native plugins are tuned to what each model does best; attach the ones
-        you need. Nothing is forced into a plan, and you can combine any models with any plugins.
+        you need. Your plan still sets the model-tier ceiling; BYOK does not raise it.
       </p>
       <h2 className="font-display text-lg text-fg">Free — {free.length}</h2>
       <CatalogList items={free} />

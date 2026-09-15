@@ -19,9 +19,9 @@ function PricingPage() {
       </p>
       <p>
         Run the models two ways, on any plan: buy <span className="text-fg">studio credits</span> for one-click
-        access, or use <span className="text-fg">BYOK</span> — connect your own keys and run <span className="text-fg">any</span>
-        {" "}model on your own accounts, including ones beyond the main four. Combine any models with any plugin, with
-        no limits. Stripe-only for the subscription; tap Activate after checkout.
+        access, or use <span className="text-fg">BYOK</span> — connect your own keys and run on your own accounts.
+        A personal key does not raise the plan ceiling; it only changes who pays. Combine any in-ceiling models with
+        any plugin your plan includes. Stripe-only for the subscription; tap Activate after checkout.
       </p>
       <div className="grid gap-3 sm:grid-cols-3">
         {PLANS.map((p) => (

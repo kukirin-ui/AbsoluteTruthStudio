@@ -17,11 +17,11 @@ const FAQS = [
   },
   {
     q: "How do I pay for the models?",
-    a: "Two ways, on any plan. Buy studio credits for one-click access to every model, or use BYOK — connect your own provider keys and run on your own accounts. Your plan sets how high a model tier your agents may reach; credits and BYOK are just how the calls are powered.",
+    a: "Two ways, on any plan. Buy studio credits for one-click access, or use BYOK — connect your own provider keys and run on your own accounts. Your plan sets how high a model tier your agents may reach; credits and BYOK are just how the calls are powered. A personal key does not unlock a higher tier.",
   },
   {
     q: "Can I use a model that isn't one of the four seats?",
-    a: "Yes, with BYOK. Connect your own key for any provider you hold and run that exact model in the mesh — even one beyond Claude, ChatGPT, Gemini, and Grok. Combine any models with any plugin; there is no cap on what you assemble.",
+    a: "You can seat Claude, ChatGPT, Gemini, or Grok — and swap in other catalog agents — on any plan. BYOK lets you fund those calls with your own provider key. It does not raise the plan ceiling: Free stays on basic-tier models, Pro on high, Premium on max. To run a higher-tier model, upgrade the plan.",
   },
   {
     q: "Can I run fewer than four agents, or pick the model level?",
