@@ -219,7 +219,7 @@ export function SeatControl({
           expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
         )}
       >
-        <div className="min-h-0 overflow-hidden">
+          <div className="min-h-0 overflow-hidden" {...(!expanded ? { inert: true } : {})}>
           <div className="space-y-4 border-t border-border bg-bg/60 px-3 py-4 md:px-4">
             <button
               type="button"

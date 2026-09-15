@@ -83,7 +83,7 @@ export function AgentMesh({
   void streaming; // parent drives LIVE via trace.status === "streaming"
 
   const owner = mounted && readOwner();
-  const user = userContextForPlan(plan, owner);
+  const user = userContextForPlan(mounted ? plan : "free", owner);
   const activeCount = activeSeats ? SEAT_ORDER.filter((s) => activeSeats[s]).length : 4;
 
   function modelIdFor(seat: AgentId) {
@@ -118,8 +118,8 @@ export function AgentMesh({
               </button>
             ))}
           </div>
-          {!compact ? (
-            <span className="ml-auto font-mono text-[10px] tracking-wide text-subtle normal-case">
+          {!compact && mounted ? (
+            <span className="ml-auto font-mono text-[10px] tracking-wide text-subtle normal-case" suppressHydrationWarning>
               PLAN: {planCeilingLabel(plan, owner)}
             </span>
           ) : null}
