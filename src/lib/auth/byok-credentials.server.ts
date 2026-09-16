@@ -12,13 +12,25 @@ import {
   encryptByokSecret,
 } from "./byok-crypto.server";
 
-export type ByokProvider = "openai" | "anthropic" | "xai" | "google";
+export type ByokProvider =
+  | "openai"
+  | "anthropic"
+  | "xai"
+  | "google"
+  | "mistral"
+  | "deepseek"
+  | "qwen"
+  | "meta";
 
 export const BYOK_PROVIDERS: readonly ByokProvider[] = [
   "openai",
   "anthropic",
   "xai",
   "google",
+  "mistral",
+  "deepseek",
+  "qwen",
+  "meta",
 ] as const;
 
 export function isByokProvider(value: string): value is ByokProvider {

@@ -133,7 +133,10 @@ export function AgentMesh({
           const seatActive = activeSeats ? activeSeats[seat] !== false : true;
           const resolvedId = modelIdFor(seat);
           const resolvedName = catalogModel(resolvedId)?.name;
-          const isProviderSeat = ["Anthropic", "OpenAI", "Google", "xAI"].includes(seated.brand) && seat !== "visual";
+          const isProviderSeat =
+            ["Anthropic", "OpenAI", "Google", "xAI", "Mistral", "DeepSeek", "Alibaba", "Meta"].includes(
+              seated.brand,
+            ) && seat !== "visual";
           const modelLabel = isProviderSeat && mounted ? (resolvedName ?? seated.name) : seated.name;
           const raw = traces.find((t) => t.id === seat) ?? {
             id: seat,
@@ -361,7 +364,8 @@ function SeatPicker({
   const leadProvider = providerForAgentId(current.id);
   const guide = PROVIDER_GUIDE[leadProvider];
   const showProvider =
-    seat !== "visual" && ["Anthropic", "OpenAI", "Google", "xAI"].includes(current.brand);
+    seat !== "visual" &&
+    ["Anthropic", "OpenAI", "Google", "xAI", "Mistral", "DeepSeek", "Alibaba", "Meta"].includes(current.brand);
   const selectedId =
     currentModelId ??
     resolvedSeatModelId(null, null, user, catalogProviderLabel(leadProvider));

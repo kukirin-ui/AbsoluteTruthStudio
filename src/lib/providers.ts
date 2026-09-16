@@ -15,13 +15,17 @@
  * so the owner updates to the newest frontier model in Vercel with no code change.
  */
 
-export type MeshProvider = "xai" | "openai" | "anthropic" | "google";
+export type MeshProvider = "xai" | "openai" | "anthropic" | "google" | "mistral" | "deepseek" | "qwen" | "meta";
 
 export const MESH_PROVIDERS: readonly MeshProvider[] = [
   "xai",
   "openai",
   "anthropic",
   "google",
+  "mistral",
+  "deepseek",
+  "qwen",
+  "meta",
 ] as const;
 
 export type OutputPower = "low" | "mid" | "max";
@@ -60,6 +64,38 @@ export const PROVIDER_GUIDE: Record<MeshProvider, { title: string; tips: string[
       "Best for real-time facts and fresh sources.",
     ],
   },
+  mistral: {
+    title: "Prompting Mistral",
+    tips: [
+      "Short, direct briefs — it doesn't need much scaffolding.",
+      "Strong at fast, low-latency structure and terse specs.",
+      "Good self-hostable fallback voice for the Architect seat.",
+    ],
+  },
+  deepseek: {
+    title: "Prompting DeepSeek",
+    tips: [
+      "Ask for the working form or CRUD flow directly — it prefers function over decoration.",
+      "Its reasoning tier shows its work — useful when you want the 'why', not just the diff.",
+      "Cost-efficient default for high-volume Coder turns.",
+    ],
+  },
+  qwen: {
+    title: "Prompting Qwen",
+    tips: [
+      "Strong bilingual output — ask directly for dual-language copy or UI strings.",
+      "Good at dense, information-heavy layouts.",
+      "Ask for the compact version first, then expand — it over-produces on open prompts.",
+    ],
+  },
+  meta: {
+    title: "Prompting Muse Spark",
+    tips: [
+      "Meta's current model — the successor to Llama, on Meta's own API now.",
+      "Natively multimodal reasoning — good with screenshots and mixed media briefs.",
+      "Strong at long-horizon, multi-step agentic tasks; give it the full scope up front.",
+    ],
+  },
 };
 
 /** Map a catalog agent id (or brand) that can sit the lead seat to its provider. */
@@ -68,7 +104,11 @@ export function providerForAgentId(agentId: string): MeshProvider {
   if (id.includes("claude")) return "anthropic";
   if (id.includes("gpt") || id.includes("chatgpt") || id.includes("openai")) return "openai";
   if (id.includes("gemini") || id.includes("google")) return "google";
-  // grok, grok-architect, llama/mistral/deepseek/qwen (routed via xAI-compatible), default
+  if (id.includes("mistral")) return "mistral";
+  if (id.includes("deepseek")) return "deepseek";
+  if (id.includes("qwen")) return "qwen";
+  if (id.includes("llama")) return "meta";
+  // grok, grok-architect, grok-coder, default
   return "xai";
 }
 
@@ -83,6 +123,18 @@ export function ownerKeyEnvNames(provider: MeshProvider): string[] {
       return ["ANTHROPIC_API_KEY", "CLAUDE_API_KEY"];
     case "google":
       return ["GEMINI_API_KEY", "GOOGLE_API_KEY", "GOOGLE_GENERATIVE_AI_API_KEY"];
+    case "mistral":
+      return ["MISTRAL_API_KEY"];
+    case "deepseek":
+      return ["DEEPSEEK_API_KEY"];
+    case "qwen":
+      // DashScope is Alibaba's platform brand; QWEN_API_KEY is an alias some set instead.
+      return ["DASHSCOPE_API_KEY", "QWEN_API_KEY"];
+    case "meta":
+      // Muse Spark, Meta's own current model — supersedes the retired Llama API
+      // (api.llama.com, wound down July 2026). Sources disagree slightly on the
+      // official env var name; both are accepted.
+      return ["META_API_KEY", "MODEL_API_KEY"];
   }
 }
 
@@ -115,6 +167,13 @@ export const DEFAULT_MODEL: Record<MeshProvider, string> = {
   anthropic: "claude-opus-5",
   openai: "gpt-6-astra",
   google: "gemini-3.8-flash",
+  mistral: "mistral-large-latest",
+  deepseek: "deepseek-reasoner",
+  qwen: "qwen3.8-max",
+  // Meta Model API — Muse Spark, current as of this writing. Verify against
+  // developer.meta.com/ai/models/muse-spark before relying on the exact
+  // version string; override via MESH_MODEL_META with no code change if it moves.
+  meta: "muse-spark-1.3",
 };
 
 /** Resolve the API model string: an owner-pinned MESH_MODEL_*, else the flagship default. */
@@ -142,6 +201,15 @@ export function chatEndpoint(provider: MeshProvider): string {
       return "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
     case "anthropic":
       return "https://api.anthropic.com/v1/messages";
+    case "mistral":
+      return "https://api.mistral.ai/v1/chat/completions";
+    case "deepseek":
+      return "https://api.deepseek.com/chat/completions";
+    case "qwen":
+      // Alibaba DashScope, international region, OpenAI-compatible surface.
+      return "https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions";
+    case "meta":
+      return "https://api.meta.ai/v1/chat/completions";
   }
 }
 
@@ -206,7 +274,8 @@ export function buildChatFetch(req: ChatRequest): {
     // Gemini 3.x deprecates classic sampling params; send only the token cap.
     payload.max_tokens = req.maxTokens;
   } else {
-    // xAI keeps the classic sampling knobs, so power maps to temperature here.
+    // xai, mistral, deepseek, qwen, meta (Muse Spark): all speak the classic
+    // OpenAI-compat sampling shape (max_tokens + temperature).
     payload.max_tokens = req.maxTokens;
     payload.temperature = req.temperature;
   }

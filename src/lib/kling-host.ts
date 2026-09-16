@@ -40,7 +40,12 @@ function falKey() {
 }
 
 function aimlKey() {
-  return process.env.AIMLAPI_KEY?.trim() || process.env.AI_ML_API_KEY?.trim() || "";
+  return (
+    process.env.AIMLAPI_KEY?.trim() ||
+    process.env.AIMLAPI_API_KEY?.trim() ||
+    process.env.AI_ML_API_KEY?.trim() ||
+    ""
+  );
 }
 
 export function klingConfigured() {

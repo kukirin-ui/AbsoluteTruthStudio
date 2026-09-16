@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteShell } from "@/components/studio/site-shell";
-import { CATALOG, CATALOG_COUNTS, SEAT_META, wireLabel } from "@/lib/catalog";
+import { PLUGINS_CATALOG, PLUGIN_COUNTS, SEAT_META, wireLabel } from "@/lib/catalog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -10,14 +10,15 @@ export const Route = createFileRoute("/plugins")({
 });
 
 function PluginsPage() {
-  const free = CATALOG.filter((c) => c.tier === "free");
-  const paid = CATALOG.filter((c) => c.tier === "paid").sort((a, b) => a.cents - b.cents);
+  const free = PLUGINS_CATALOG.filter((c) => c.tier === "free");
+  const paid = PLUGINS_CATALOG.filter((c) => c.tier === "paid").sort((a, b) => a.cents - b.cents);
   return (
-    <SiteShell title="Agents and tools" kicker={`${CATALOG_COUNTS.total} in the catalog`}>
+    <SiteShell title="Plugins" kicker={`${PLUGIN_COUNTS.total} in the catalog`}>
       <p>
-        {CATALOG_COUNTS.free} free and {CATALOG_COUNTS.paid} paid. Open any of the four seats, choose who sits
-        there, and attach the tools it supports. The seats carry the brief between them and cross-check the result —
-        that is the product.
+        {PLUGIN_COUNTS.free} free and {PLUGIN_COUNTS.paid} paid. Plugins attach to whichever agent is already
+        seated — they never replace it. Looking for a different model in a seat instead of a plugin? That's on the{" "}
+        <Link to="/agents">Agents</Link> page.
+      </p>
       </p>
       <p className="text-sm text-muted">
         Each seat runs a real frontier model — Claude, ChatGPT, Gemini, or Grok — routed to that provider on your
@@ -35,7 +36,7 @@ function PluginsPage() {
   );
 }
 
-function CatalogList({ items }: { items: typeof CATALOG }) {
+function CatalogList({ items }: { items: typeof PLUGINS_CATALOG }) {
   return (
     <ul className="space-y-2">
       {items.map((item) => (

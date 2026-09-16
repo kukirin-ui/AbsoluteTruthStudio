@@ -3,13 +3,25 @@
  * Metadata only — never log, store, or echo secrets after submit.
  */
 
-export type ByokProvider = "openai" | "anthropic" | "xai" | "google";
+export type ByokProvider =
+  | "openai"
+  | "anthropic"
+  | "xai"
+  | "google"
+  | "mistral"
+  | "deepseek"
+  | "qwen"
+  | "meta";
 
 export const BYOK_PROVIDERS: readonly ByokProvider[] = [
   "openai",
   "anthropic",
   "xai",
   "google",
+  "mistral",
+  "deepseek",
+  "qwen",
+  "meta",
 ] as const;
 
 export const BYOK_PROVIDER_LABELS: Record<ByokProvider, string> = {
@@ -17,6 +29,10 @@ export const BYOK_PROVIDER_LABELS: Record<ByokProvider, string> = {
   anthropic: "Anthropic",
   xai: "xAI",
   google: "Google",
+  mistral: "Mistral",
+  deepseek: "DeepSeek",
+  qwen: "Qwen (Alibaba / DashScope)",
+  meta: "Muse Spark (Meta — successor to Llama)",
 };
 
 /** List/POST success metadata — never includes ciphertext or plaintext. */

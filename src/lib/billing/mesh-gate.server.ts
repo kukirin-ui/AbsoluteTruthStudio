@@ -3,10 +3,11 @@
  *
  * CONTRACT:
  * - Credits primary; included buffer is always 0 on owner-keys path.
- * - Funded when creditCents > 0 OR a decrypted xAI BYOK path is available
- *   (presence of openai/anthropic BYOK alone does NOT authorize owner key).
- * - Backend funding allow uses hasByokXai only; hasByok (any provider) is for
- *   meter badge / UI — presence alone does NOT authorize owner XAI_API_KEY.
+ * - Funded when creditCents > 0 OR the user holds a decrypted BYOK key for
+ *   the LEAD provider specifically — whichever model is actually seated.
+ *   A BYOK key for a provider that is NOT the lead does not authorize a run.
+ * - hasByokLead drives the funding decision; hasByok (any provider) is for
+ *   the meter badge / UI only — presence alone does NOT authorize a run.
  * - Never return plaintext keys.
  *
  * Debit floor for studio (owner-key) turns:
@@ -20,21 +21,29 @@
  */
 export const MESH_STUDIO_TURN_CENTS = 1;
 
-export type ByokProvider = "openai" | "anthropic" | "xai" | "google";
+export type ByokProvider =
+  | "openai"
+  | "anthropic"
+  | "xai"
+  | "google"
+  | "mistral"
+  | "deepseek"
+  | "qwen"
+  | "meta";
 
 /**
- * Pure decision: credits > 0 OR hasByokXai ⇒ allow.
- * Non-xAI BYOK (openai/anthropic) alone does NOT allow.
+ * Pure decision: credits > 0 OR the lead provider has a BYOK key ⇒ allow.
+ * A BYOK key for any OTHER provider does NOT allow — only the lead's does.
  */
 export function decideMeshFunding(
   creditCents: number,
-  hasByokXai: boolean,
+  hasByokLead: boolean,
 ): { allow: boolean; creditCents: number; hasByokXai: boolean } {
   const credits = Number.isFinite(creditCents) ? Math.max(0, Math.trunc(creditCents)) : 0;
   return {
-    allow: credits > 0 || hasByokXai === true,
+    allow: credits > 0 || hasByokLead === true,
     creditCents: credits,
-    hasByokXai: hasByokXai === true,
+    hasByokXai: hasByokLead === true,
   };
 }
 

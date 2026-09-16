@@ -49,6 +49,32 @@ export const PROVIDER_TIERS: Record<MeshProvider, Record<ModelTier, TierEntry>> 
     high: { model: "grok-4.6", label: "Grok 4.6" },
     max: { model: "grok-4.6", label: "Grok 4.6" },
   },
+  mistral: {
+    basic: { model: "mistral-small-latest", label: "Mistral Small" },
+    standard: { model: "mistral-medium-latest", label: "Mistral Medium" },
+    high: { model: "mistral-large-latest", label: "Mistral Large" },
+    max: { model: "magistral-medium-latest", label: "Magistral Medium" },
+  },
+  deepseek: {
+    basic: { model: "deepseek-chat", label: "DeepSeek V3 (Chat)" },
+    standard: { model: "deepseek-chat", label: "DeepSeek V3 (Chat)" },
+    high: { model: "deepseek-reasoner", label: "DeepSeek R1 (Reasoner)" },
+    max: { model: "deepseek-reasoner", label: "DeepSeek R1 (Reasoner)" },
+  },
+  qwen: {
+    basic: { model: "qwen3.7-flash", label: "Qwen3.7 Flash" },
+    standard: { model: "qwen3.7-plus", label: "Qwen3.7 Plus" },
+    high: { model: "qwen3.8-flash", label: "Qwen3.8 Flash" },
+    max: { model: "qwen3.8-max", label: "Qwen3.8 Max" },
+  },
+  meta: {
+    // Muse Spark — Meta's own current model, successor to Llama (which Meta
+    // itself has moved past). Served via Meta's own API, not a third party.
+    basic: { model: "muse-spark-1.1", label: "Muse Spark 1.1" },
+    standard: { model: "muse-spark-1.1", label: "Muse Spark 1.1" },
+    high: { model: "muse-spark-1.3", label: "Muse Spark 1.3" },
+    max: { model: "muse-spark-1.3", label: "Muse Spark 1.3" },
+  },
 };
 
 /** Highest tier a plan may reach. */

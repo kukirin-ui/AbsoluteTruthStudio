@@ -214,7 +214,7 @@ export function Library({
           <ul className="mt-2.5 space-y-2 text-xs leading-snug text-muted">
             <li className="flex gap-2">
               <span className="mt-1 size-1.5 shrink-0 rounded-full bg-indigo-glow/80" />
-              <span>Claude, ChatGPT, Gemini &amp; Grok cross-check every answer.</span>
+              <span>Claude, ChatGPT, Gemini &amp; Grok lead by default — eight models total to choose from.</span>
             </li>
             <li className="flex gap-2">
               <span className="mt-1 size-1.5 shrink-0 rounded-full bg-emerald/80" />
@@ -222,7 +222,7 @@ export function Library({
             </li>
             <li className="flex gap-2">
               <span className="mt-1 size-1.5 shrink-0 rounded-full bg-indigo/80" />
-              <span>Set each model's tier, run 1–4 agents, or bring your own keys.</span>
+              <span>Set each seat's tier, run 1–4 agents, or bring your own key for any of the eight.</span>
             </li>
           </ul>
           <p className="mt-3 border-t border-border pt-2.5 text-[11px] text-subtle">

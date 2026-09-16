@@ -77,7 +77,7 @@ export const CATALOG: CatalogItem[] = [
   { id: "imagine", name: "Imagine", brand: "xAI", seats: ["visual"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Default Visual. Hands you the still or the clip.", why: "Native renderer in this studio.", wire: "imagine-video", includedIn: ["free", "pro", "premium"], pluginId: "imagine-video" },
   { id: "chatgpt", name: "ChatGPT", brand: "OpenAI", seats: ["coder"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Default Coder. Ships a running React app.", why: "Strong at UI + mock backend in one pass.", wire: "app", includedIn: ["free", "pro", "premium"], pluginId: "app-compiler" },
   { id: "grok", name: "Grok", brand: "xAI", seats: ["security"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Default Verifier. Flags unverified claims. Never hides the answer.", why: "Keeps the mesh honest.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
-  { id: "llama", name: "Llama", brand: "Meta", seats: ["architect"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Open-weight Architect. Fast structure, plain language.", why: "Swap in when you want a leaner brief.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+  { id: "llama", name: "Muse Spark", brand: "Meta", seats: ["architect"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Meta's current model — the successor to Llama, which Meta itself has moved on from.", why: "Formerly Llama. Same Meta seat, Meta's actual current model.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
   { id: "gemini", name: "Gemini", brand: "Google", seats: ["architect"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Multimodal Architect. Good at mixed image + copy briefs.", why: "Use when the brief is visual from the first line.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
   { id: "mistral", name: "Mistral", brand: "Mistral", seats: ["architect"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Tight Architect. Short specs, no fluff.", why: "Cuts the brief to what Coder and Visual can ship.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
   { id: "qwen", name: "Qwen", brand: "Alibaba", seats: ["coder"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Coder for dense UI and bilingual copy.", why: "Strong when the app needs Croatian + English.", wire: "app", includedIn: ["free", "pro", "premium"] },
@@ -88,6 +88,7 @@ export const CATALOG: CatalogItem[] = [
   { id: "gemini-verifier", name: "Gemini Verifier", brand: "Google", seats: ["security"], kind: "agent", tier: "free", price: "$0", cents: 0, blurb: "Verifier that prefers primary sources.", why: "Use when the answer cites the live web.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
   { id: "copywriter", name: "Spot Copy", brand: "Studio", seats: ["visual", "architect"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "Headline, claim, CTA on every still and clip.", why: "Ads need words on the frame.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
   { id: "spec-notes", name: "Spec Notes", brand: "Studio", seats: ["architect"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "Typed data model in the Architect pass.", why: "Stops Coder from inventing fields.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
+  { id: "grill-me", name: "Grill Me", brand: "Studio", seats: ["architect"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "Interviews you on the brief, one branch at a time, before writing anything.", why: "Fewer wrong turns because the spec was actually nailed down first.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
   { id: "tailwind-kit", name: "Tailwind Kit", brand: "Studio", seats: ["coder"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "Forces Tailwind classNames in shipped apps.", why: "Preview runtime already injects Tailwind.", wire: "app", includedIn: ["free", "pro", "premium"] },
   { id: "svg-icons", name: "SVG Icons", brand: "Studio", seats: ["visual", "coder"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "Inline SVG instead of icon fonts.", why: "Apps stay offline-complete.", wire: "app", includedIn: ["free", "pro", "premium"] },
   { id: "seo-audit", name: "SEO Audit", brand: "Studio", seats: ["security"], kind: "tool", tier: "free", price: "$0", cents: 0, blurb: "Verifier checks titles, claims, and empty meta.", why: "Landing apps need a real title.", wire: "mesh", includedIn: ["free", "pro", "premium"] },
@@ -135,6 +136,18 @@ export const CATALOG: CatalogItem[] = [
   { id: "priority-mesh", name: "Priority Mesh", brand: "Studio", seats: ["architect", "visual", "coder", "security"], kind: "tool", tier: "paid", price: "$25", cents: 2500, blurb: "Longer token budget. Four seats stay in lockstep.", why: "Premium consensus does not get cut off.", wire: "mesh", includedIn: ["premium"] },
   { id: "veo-cinema", name: "Veo Cinema", brand: "Google", seats: ["visual"], kind: "tool", tier: "paid", price: "$39", cents: 3900, blurb: "4K-grade cinematic pass on the same brief.", why: "The most expensive look in the catalog.", wire: "imagine-video", includedIn: ["premium"] },
   { id: "midjourney-hero", name: "Hero Still", brand: "Midjourney", seats: ["visual"], kind: "agent", tier: "paid", price: "$24", cents: 2400, blurb: "Art-directed stills for posters and key visuals.", why: "When the frame is the whole product.", wire: "imagine-image", includedIn: ["premium"] },
+  { id: "roast-me", name: "Roast Me", brand: "xAI", seats: ["architect", "coder", "security"], kind: "tool", tier: "paid", price: "$5", cents: 500, blurb: "Grok's unfiltered personality, pointed at your idea.", why: "The one seat willing to actually tell you it's bad.", wire: "mesh", includedIn: ["pro", "premium"] },
+  { id: "suno-score", name: "Suno Score", brand: "Suno", seats: ["visual"], kind: "tool", tier: "paid", price: "$15", cents: 1500, blurb: "Original scored music for the finished clip.", why: "A real soundtrack, not stock audio.", wire: "mesh", includedIn: ["premium"] },
+  { id: "descript-cut", name: "Descript Cut", brand: "Descript", seats: ["visual"], kind: "tool", tier: "paid", price: "$18", cents: 1800, blurb: "Edits the raw generation into a paced final cut.", why: "Footage in, finished edit out.", wire: "mesh", includedIn: ["premium"] },
+  { id: "topaz-upscale", name: "Topaz Upscale", brand: "Topaz Labs", seats: ["visual"], kind: "tool", tier: "paid", price: "$14", cents: 1400, blurb: "4K upscale and denoise pass on any render.", why: "Ship at delivery resolution, not draft resolution.", wire: "mesh", includedIn: ["pro", "premium"] },
+  { id: "cited-research", name: "Cited Research", brand: "Perplexity", seats: ["security", "architect"], kind: "tool", tier: "paid", price: "$10", cents: 1000, blurb: "Web research with a source attached to every claim.", why: "Nothing in consensus that can't be traced.", wire: "mesh", includedIn: ["pro", "premium"] },
+  { id: "notion-sync", name: "Notion Sync", brand: "Notion", seats: ["architect"], kind: "tool", tier: "paid", price: "$7", cents: 700, blurb: "Pushes the spec straight into a Notion doc.", why: "The plan lives where the team already works.", wire: "app", includedIn: ["pro", "premium"] },
+  { id: "higgsfield-workspace", name: "Higgsfield Workspace", brand: "Higgsfield", seats: ["visual"], kind: "tool", tier: "paid", price: "$29", cents: 2900, blurb: "One brief, run across 50+ video and image models side by side.", why: "Compare outputs before committing to a final render.", wire: "mesh", includedIn: ["premium"] },
+  { id: "vercel-direct", name: "Vercel Direct Deploy", brand: "Vercel", seats: ["coder"], kind: "tool", tier: "paid", price: "$9", cents: 900, blurb: "Ships the build straight to a live preview URL.", why: "A link to click, not just a repo to clone.", wire: "app", includedIn: ["pro", "premium"] },
+  { id: "ltx-storyboard", name: "LTX Storyboard", brand: "LTX Studio", seats: ["visual"], kind: "tool", tier: "paid", price: "$21", cents: 2100, blurb: "Full shot-by-shot storyboard before a single frame renders.", why: "Pre-production for the brief, not just one clip.", wire: "mesh", includedIn: ["premium"] },
+  { id: "mystic-stock", name: "Mystic Stock", brand: "Freepik", seats: ["visual"], kind: "tool", tier: "paid", price: "$12", cents: 1200, blurb: "Licensed stock blended with AI-generated fill.", why: "Commercial-safe assets when a real photo has to anchor the scene.", wire: "mesh", includedIn: ["pro", "premium"] },
+  { id: "framer-handoff", name: "Framer Handoff", brand: "Framer", seats: ["coder", "architect"], kind: "tool", tier: "paid", price: "$16", cents: 1600, blurb: "Publishes the build as an editable Framer site.", why: "A marketing site a non-engineer can still tweak.", wire: "app", includedIn: ["premium"] },
+  { id: "long-term-memory", name: "Long-Term Memory", brand: "Pinecone", seats: ["architect"], kind: "tool", tier: "paid", price: "$13", cents: 1300, blurb: "The mesh recalls prior sessions on this project.", why: "Stop re-explaining the brief every time you come back.", wire: "mesh", includedIn: ["premium"] },
 ];
 
 export function catalogById(id: string) {
@@ -244,3 +257,32 @@ export const CATALOG_COUNTS = {
   free: CATALOG.filter((c) => c.tier === "free").length,
   paid: CATALOG.filter((c) => c.tier === "paid").length,
 };
+
+/**
+ * Strict split by `kind`. An agent occupies a seat and IS the model doing the
+ * work (Claude, Kling, Veo...). A plugin/tool augments whichever agent is
+ * already seated (Deep Think, Tailwind Kit, Live X Search...). The two must
+ * never share a listing — CATALOG_COUNTS above intentionally does NOT encode
+ * this distinction, so anything counting "plugins" must filter by kind, not
+ * just tier.
+ */
+export const AGENTS_CATALOG: CatalogItem[] = CATALOG.filter((c) => c.kind === "agent");
+export const PLUGINS_CATALOG: CatalogItem[] = CATALOG.filter((c) => c.kind === "tool");
+
+export const AGENT_COUNTS = {
+  total: AGENTS_CATALOG.length,
+  free: AGENTS_CATALOG.filter((c) => c.tier === "free").length,
+  paid: AGENTS_CATALOG.filter((c) => c.tier === "paid").length,
+};
+
+export const PLUGIN_COUNTS = {
+  total: PLUGINS_CATALOG.length,
+  free: PLUGINS_CATALOG.filter((c) => c.tier === "free").length,
+  paid: PLUGINS_CATALOG.filter((c) => c.tier === "paid").length,
+};
+
+/** Paid agent-kind items (Kling, Veo, Runway...) that a seat can be upgraded to — never shown as plugins. */
+export function paidAgentsForSeat(seat: AgentId): CatalogItem[] {
+  return AGENTS_CATALOG.filter((c) => c.tier === "paid" && c.seats.includes(seat));
+}
+
