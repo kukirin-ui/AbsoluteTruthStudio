@@ -4,6 +4,7 @@ import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { AppErrorComponent } from "@/lib/error-component";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "sonner";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import appCss from "../styles.css?url";
 
 const APP_NAME = "Absolute Truth Studio";
@@ -64,6 +65,7 @@ function RootDocument() {
             />
           </TooltipProvider>
         </AuthProvider>
+        <SpeedInsights />
         <Scripts />
       </body>
     </html>
