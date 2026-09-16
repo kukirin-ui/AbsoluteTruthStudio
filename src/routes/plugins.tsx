@@ -19,7 +19,6 @@ function PluginsPage() {
         seated — they never replace it. Looking for a different model in a seat instead of a plugin? That's on the{" "}
         <Link to="/agents">Agents</Link> page.
       </p>
-      </p>
       <p className="text-sm text-muted">
         Each seat runs a real frontier model — Claude, ChatGPT, Gemini, or Grok — routed to that provider on your
         credits or your own key (BYOK). Agent-native plugins are tuned to what each model does best; attach the ones
