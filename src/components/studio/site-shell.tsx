@@ -22,9 +22,15 @@ export function SiteShell({
     <div className="relative min-h-dvh bg-bg text-fg">
       <AmbientGlow />
       <header className="relative z-10 flex items-center justify-between gap-3 px-4 py-3 md:px-8">
-        <Link to="/" className="rounded-md">
-          <Wordmark />
-        </Link>
+        {onLogin ? (
+          <span className="rounded-md">
+            <Wordmark />
+          </span>
+        ) : (
+          <Link to="/" className="rounded-md">
+            <Wordmark />
+          </Link>
+        )}
         {isLoggedIn ? (
           <Button asChild size="sm">
             <Link to="/">Open studio</Link>
