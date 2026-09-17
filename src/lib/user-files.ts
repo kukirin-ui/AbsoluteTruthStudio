@@ -20,9 +20,7 @@ const MAX_ARCHIVE_BYTES = 100 * 1024 * 1024; // 100MB for ZIP files
 const IMAGE_MAX_EDGE = 1280;
 
 export function imageRefs(files: UserFile[]) {
-  return files
-    .filter((f) => f.dataUrl && (f.kind === "image" || f.kind === "video"))
-    .map((f) => f.dataUrl!);
+  return files.filter((f) => f.dataUrl && (f.kind === "image" || f.kind === "video")).map((f) => f.dataUrl!);
 }
 
 export function textRefs(files: UserFile[]) {
@@ -256,10 +254,8 @@ function drawToJpeg(source: CanvasImageSource, width: number, height: number): s
 async function compressImage(file: File): Promise<string> {
   if (typeof createImageBitmap === "function") {
     try {
-      // Prefer resize options so huge sources never fully decode at native size.
       let bmp: ImageBitmap;
       try {
-        // One edge only — preserves aspect ratio and avoids full-res decode when supported.
         bmp = await createImageBitmap(file, {
           resizeWidth: IMAGE_MAX_EDGE,
           resizeQuality: "high",
