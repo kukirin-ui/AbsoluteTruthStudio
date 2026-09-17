@@ -212,7 +212,7 @@ function isVideoFile(file: File) {
 }
 
 function isTextLike(file: File) {
-  if (/^text/|^application/(json|javascript|xml|typescript)/i.test(file.type || "")) return true;
+  if (/^text\/|^application\/(json|javascript|xml|typescript)/i.test(file.type || "")) return true;
   return /^(tsx?|jsx?|mjs|cjs|css|html?|md|json|txt|svg|csv|yml|yaml|toml|py|rs|go|java|kt)$/i.test(
     ext(file.name || ""),
   );
