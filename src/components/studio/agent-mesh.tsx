@@ -78,8 +78,24 @@ export function AgentMesh({
   onPower?: (power: OutputPower) => void;
 }) {
   const [pick, setPick] = useState<AgentId | null>(null);
+  const [expandedSeat, setExpandedSeat] = useState<AgentId | null>(null);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    if (!expandedSeat) return;
+    function onPointerDown(event: PointerEvent) {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest(`[data-seat-control="${expandedSeat}"]`)) return;
+      setExpandedSeat(null);
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [expandedSeat]);
+
+  function togglePicker(next: AgentId) {
+    setExpandedSeat(null);
+    setPick((current) => (current === next ? null : current ? null : next));
+  }
   void streaming; // parent drives LIVE via trace.status === "streaming"
 
   const owner = mounted && readOwner();
@@ -179,7 +195,7 @@ export function AgentMesh({
               <header className="flex items-start justify-between gap-2 pl-2">
                 <button
                   type="button"
-                  onClick={() => setPick(seat)}
+                  onClick={() => togglePicker(seat)}
                   className="min-w-0 flex-1 text-left"
                 >
                   <p className="truncate text-[10px] font-medium tracking-wider text-indigo-glow uppercase">
@@ -209,7 +225,7 @@ export function AgentMesh({
                     ) : null}
                     <button
                       type="button"
-                      onClick={() => setPick(seat)}
+                      onClick={() => togglePicker(seat)}
                       className="h-7 rounded-md px-2 text-[10px] tracking-wide text-indigo-glow uppercase hover:bg-elevated"
                     >
                       Swap
@@ -254,7 +270,12 @@ export function AgentMesh({
                 selectedModelId={mounted ? resolvedId : "claude-haiku-4-5"}
                 user={user}
                 hasByok={hasByok}
-                onSelectModel={(modelId) => onSeatModel?.(seat, modelId)}
+                expanded={expandedSeat === seat}
+                onExpandedChange={(open) => setExpandedSeat(open ? seat : null)}
+                onSelectModel={(modelId) => {
+                  onSeatModel?.(seat, modelId);
+                  setExpandedSeat(null);
+                }}
                 onRequestByok={() => onRequestByok?.()}
                 headerRight={
                   <div className="flex shrink-0 flex-col items-end gap-1">
@@ -276,7 +297,7 @@ export function AgentMesh({
                       ) : null}
                       <button
                         type="button"
-                        onClick={() => setPick(seat)}
+                        onClick={() => togglePicker(seat)}
                         className="h-7 rounded-md px-2 text-[10px] tracking-wide text-indigo-glow uppercase hover:bg-elevated"
                       >
                         Swap
@@ -371,11 +392,14 @@ function SeatPicker({
     resolvedSeatModelId(null, null, user, catalogProviderLabel(leadProvider));
 
   return (
-    <Dialog open onOpenChange={(v) => !v && onClose()}>
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent
         title={`Swap agent · ${meta.label}`}
         description={`${meta.framework} The seats stay in lockstep. Swap picks who runs this tab; the model ladder is clamped to your plan ceiling.`}
         className="max-h-[min(88dvh,40rem)] w-[min(100%-1.5rem,36rem)] overflow-y-auto"
+        onPointerDownOutside={onClose}
+        onInteractOutside={onClose}
+        onEscapeKeyDown={onClose}
       >
         <p className="mb-3 text-xs text-muted">
           Live now: <span className="text-fg">{current.name}</span> · {current.brand}

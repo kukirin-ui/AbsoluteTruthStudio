@@ -19,7 +19,7 @@ export function DialogContent({
 }) {
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-bg/70 backdrop-blur-sm" />
+      <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-bg/70 backdrop-blur-sm data-[state=open]:animate-[mesh-in_250ms_ease-out]" />
       <DialogPrimitive.Content
         className={cn(
           "fixed top-1/2 left-1/2 z-50 w-[min(100%-1.5rem,32rem)] -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-surface p-5 shadow-[0_0_0_1px_rgb(255_255_255/0.08),0_24px_60px_rgb(0_0_0/0.45)]",

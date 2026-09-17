@@ -163,6 +163,8 @@ export function SeatControl({
   onSelectModel,
   onRequestByok,
   defaultExpanded = false,
+  expanded: expandedProp,
+  onExpandedChange,
 }: {
   seat: AgentId;
   selectedModelId: string;
@@ -173,19 +175,29 @@ export function SeatControl({
   onSelectModel: (modelId: string) => void;
   onRequestByok: () => void;
   defaultExpanded?: boolean;
+  expanded?: boolean;
+  onExpandedChange?: (open: boolean) => void;
 }) {
-  const [expanded, setExpanded] = useState(defaultExpanded);
+  const [uncontrolled, setUncontrolled] = useState(defaultExpanded);
+  const expanded = expandedProp ?? uncontrolled;
+  function setExpanded(next: boolean) {
+    onExpandedChange?.(next);
+    if (expandedProp === undefined) setUncontrolled(next);
+  }
   const meta = SEAT_CHROME[seat];
   const Icon = meta.icon;
   const model = catalogModel(selectedModelId) ?? MODEL_CATALOG["claude-haiku-4-5"]!;
 
   return (
-    <article className="overflow-hidden rounded-xl bg-panel shadow-[0_0_0_1px_rgb(255_255_255/0.06)]">
+    <article
+      data-seat-control={seat}
+      className="overflow-hidden rounded-xl bg-panel shadow-[0_0_0_1px_rgb(255_255_255/0.06)]"
+    >
       <div className="flex items-center gap-2 p-3 md:p-4">
         <button
           type="button"
           aria-expanded={expanded}
-          onClick={() => setExpanded((v) => !v)}
+          onClick={() => setExpanded(!expanded)}
           className="flex min-w-0 flex-1 items-center gap-3 text-left"
         >
           <span
@@ -239,7 +251,14 @@ export function SeatControl({
               </span>
               {hasByok ? <Check className="size-4 text-indigo-glow" /> : null}
             </button>
-            <ModelLadder selectedModelId={selectedModelId} user={user} onSelect={onSelectModel} />
+            <ModelLadder
+              selectedModelId={selectedModelId}
+              user={user}
+              onSelect={(modelId) => {
+                onSelectModel(modelId);
+                setExpanded(false);
+              }}
+            />
           </div>
         </div>
       </div>

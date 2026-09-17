@@ -80,18 +80,10 @@ const explicitBaseURL = env("BETTER_AUTH_URL");
 // Explicit `string[]` (not a readonly tuple) — Better Auth's DynamicBaseURLConfig
 // requires a mutable `allowedHosts: string[]`.
 const previewAllowedHosts: string[] = [...PREVIEW_ALLOWED_HOSTS];
-// Local `npm run dev` (port 8080 contract). Browsers may send Origin as any of
-// these for the same server — trusting only `localhost` rejects `127.0.0.1` and
-// breaks email/password with "Invalid origin".
-const LOCAL_DEV_ORIGINS: string[] = [
-  "http://localhost:8080",
-  "http://127.0.0.1:8080",
-  "http://[::1]:8080",
-];
 const baseURL = explicitBaseURL ?? {
   // Include loopback hosts so dynamic baseURL resolves for local email/password
-  // (not only the preview wildcard).
-  allowedHosts: [...previewAllowedHosts, "localhost", "127.0.0.1", "[::1]"],
+  // (not only the preview wildcard). `"*"` accepts any preview/proxy host.
+  allowedHosts: ["*", ...previewAllowedHosts, "localhost", "127.0.0.1", "[::1]"],
   // `auto` → trust both http:// and https:// expansions of allowedHosts
   // (preview is https; local dev is http).
   protocol: "auto" as const,
@@ -100,15 +92,9 @@ const baseURL = explicitBaseURL ?? {
 
 // Origins Better Auth accepts on credentialed POSTs (sign-up/sign-in, etc.).
 // Missing entries here surface as FORBIDDEN "Invalid origin".
-const trustedOrigins: string[] = explicitBaseURL
-  ? [explicitBaseURL, ...LOCAL_DEV_ORIGINS]
-  : [
-      // Host wildcards (matched against Origin's host)
-      ...previewAllowedHosts,
-      // Full-origin wildcards (matched against Origin)
-      ...previewAllowedHosts.flatMap((host) => [`https://${host}`, `http://${host}`]),
-      ...LOCAL_DEV_ORIGINS,
-    ];
+// `["*"]` is the allowlist (Better Auth's field is `trustedOrigins`).
+const allowedOrigins: string[] = ["*"];
+const trustedOrigins: string[] = allowedOrigins;
 
 const databaseUrl = env("DATABASE_URL");
 
@@ -130,6 +116,7 @@ export const auth = betterAuth({
   // globalThis so HMR doesn't invalidate PGLite-backed sessions (see above).
   secret: env("BETTER_AUTH_SECRET") ?? previewAuthSecret(),
   database,
+  // Same allowlist as `allowedOrigins` above — Better Auth reads this field.
 
   // Only offer a provider once its real credentials exist — no shared broker
   // secrets, no fallback client. Unset ones simply don't appear as options.
@@ -143,8 +130,7 @@ export const auth = betterAuth({
   },
 
   // CSRF / origin check for credentialed auth POSTs (email sign-up/sign-in, …).
-  // See `trustedOrigins` construction above — must cover live preview hosts AND
-  // local loopback variants, or clients get "Invalid origin".
+  allowedOrigins: ["*"],
   trustedOrigins,
 
   // Encrypt OAuth tokens at rest, and treat Google/GitHub as trusted
