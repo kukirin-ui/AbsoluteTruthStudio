@@ -126,7 +126,7 @@ export function AgentMesh({
         </div>
       ) : null}
       {compact ? (
-      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-2">
         {SEAT_ORDER.map((seat) => {
           const seated = seatedItem(roster, seat);
           const meta = SEAT_META[seat];
@@ -222,7 +222,7 @@ export function AgentMesh({
         })}
       </div>
       ) : (
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2" data-agent-matrix>
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-2" data-agent-matrix>
         {SEAT_ORDER.map((seat) => {
           const seated = seatedItem(roster, seat);
           const meta = SEAT_META[seat];

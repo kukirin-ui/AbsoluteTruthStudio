@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -540,9 +540,12 @@ export function PlanLockNote({ text, onUpgrade }: { text: string; onUpgrade: () 
 function AccountControl({ onNavigate }: { onNavigate?: () => void }) {
   const { user, isPending } = useCurrentUserState();
   const [busy, setBusy] = useState(false);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   if (isPending) return null;
   if (!user) {
+    // Already on the login page — the form + OAuth buttons are the one set.
+    if (pathname === "/login") return null;
     return (
       <div className="mt-4 border-t border-white/10 pt-3">
         <Link
@@ -568,7 +571,7 @@ function AccountControl({ onNavigate }: { onNavigate?: () => void }) {
           setBusy(true);
           try {
             writeOwner(false);
-            await signOut("/");
+            await signOut("/login");
           } catch (err) {
             toast.error(err instanceof Error ? err.message : "Sign-out failed — try again.");
             setBusy(false);

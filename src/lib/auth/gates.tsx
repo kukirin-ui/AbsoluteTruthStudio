@@ -1,6 +1,6 @@
 import { useState, useSyncExternalStore, type ReactNode } from "react";
 import { Navigate } from "@tanstack/react-router";
-import { AUTH_PROVIDERS, authEnabled, signIn, signOut } from "./client";
+import { AUTH_PROVIDERS, authEnabled, signInWithGithub, signInWithGoogle, signOut } from "./client";
 import { hasGateSessionMarker } from "./gate-session-marker";
 import { resolveSignInGateState } from "./sign-in-gate";
 import { useCurrentUser, useCurrentUserState } from "./use-current-user";
@@ -70,8 +70,10 @@ export function SignInButtons() {
         <button
           key={p.providerId}
           type="button"
-          onClick={() => signIn(p.providerId, { callbackURL: "/" })}
-          className="w-full cursor-pointer rounded-md border border-neutral-300 px-4 py-2 hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-900"
+          onClick={() =>
+            p.providerId === "google" ? void signInWithGoogle() : void signInWithGithub()
+          }
+          className="w-full cursor-pointer rounded-md bg-transparent px-4 py-2 text-fg shadow-[0_0_0_1px_rgb(255_255_255/0.1)] hover:bg-elevated"
         >
           Continue with {p.label}
         </button>
