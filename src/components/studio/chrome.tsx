@@ -561,8 +561,8 @@ function AccountControl({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <div className="mt-4 space-y-1 border-t border-white/10 pt-3">
-      <p className="truncate px-2 text-[11px] text-subtle" title={user.email ?? undefined}>
-        {user.email ?? "Signed in"}
+      <p className="truncate px-2 text-[11px] text-subtle" title={user.primaryEmail ?? undefined}>
+        {user.primaryEmail ?? "Signed in"}
       </p>
       <button
         type="button"

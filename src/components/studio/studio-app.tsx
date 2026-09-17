@@ -1207,7 +1207,6 @@ export function StudioApp({
         open={memoryOpen}
         onOpenChange={setMemoryOpen}
         memory={store.memory}
-        roster={store.roster}
         onChange={store.setMemory}
       />
       <Sheet open={codeOpen} onOpenChange={setCodeOpen}>
