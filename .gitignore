@@ -1,0 +1,10 @@
+# dependencies / local build artifacts only — NEVER ignore package.json, package-lock.json, src/, or vercel.json
+node_modules/
+.vercel/
+.data/
+dist/
+coverage/
+*.log
+.env
+.env.*
+!.env.example
