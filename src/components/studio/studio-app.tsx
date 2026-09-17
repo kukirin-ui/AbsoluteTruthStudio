@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AgentMesh } from "@/components/studio/agent-mesh";
-import { KiraWelcomeState } from "@/components/studio/KiraWelcomeState";
+import { KiraWelcomeState, SovereignMeshField } from "@/components/studio/KiraWelcomeState";
 import {
   AmbientGlow,
   BillingDrawer,
@@ -936,8 +936,8 @@ export function StudioApp({
           <ScrollArea className="h-full pr-2">{library}</ScrollArea>
         </aside>
 
-        <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-bg">
-          <div className="flex shrink-0 flex-wrap items-center gap-2 px-3 py-2 md:px-5">
+        <main className="relative flex min-h-0 min-w-0 flex-1 flex-col">
+          <div className="relative z-20 flex shrink-0 flex-wrap items-center gap-2 bg-bg/55 px-3 py-2 backdrop-blur-md md:px-5">
             <ModeSwitch mode={mode} onChange={handleMode} />
             <Button
               type="button"
@@ -979,8 +979,9 @@ export function StudioApp({
             </div>
           </div>
 
-          <div className="flex min-h-0 flex-1 flex-col">
-            <div className="touch-scroll min-h-0 flex-1 overflow-y-auto px-3 md:px-5">
+          <div className="relative flex min-h-0 flex-1 flex-col">
+            {messages.length === 0 ? <SovereignMeshField /> : null}
+            <div className="touch-scroll relative z-10 min-h-0 flex-1 overflow-y-auto px-3 md:px-5">
               <div className="mx-auto flex w-full max-w-5xl flex-col gap-2 py-2 pb-6">
                 <AgentMesh
                   traces={traces}
@@ -1143,7 +1144,7 @@ export function StudioApp({
               </div>
             </div>
 
-            <div className="mx-auto w-full max-w-5xl shrink-0 px-3 pt-1 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:px-5">
+            <div className="relative z-10 mx-auto w-full max-w-5xl shrink-0 px-3 pt-1 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:px-5">
               <Composer
                 value={draft}
                 onChange={(v) => {

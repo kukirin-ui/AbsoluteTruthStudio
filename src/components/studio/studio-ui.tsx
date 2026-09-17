@@ -191,7 +191,7 @@ export function SeatControl({
   return (
     <article
       data-seat-control={seat}
-      className="overflow-hidden rounded-xl bg-panel shadow-[0_0_0_1px_rgb(255_255_255/0.06)]"
+      className="overflow-hidden rounded-xl bg-panel/70 shadow-[0_0_0_1px_rgb(255_255_255/0.06)] backdrop-blur-xl"
     >
       <div className="flex items-center gap-2 p-3 md:p-4">
         <button

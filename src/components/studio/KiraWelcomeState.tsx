@@ -18,6 +18,15 @@ const HINTS: readonly string[] = [
   "Your own API key changes who pays for the call. It never changes how high the models may go.",
 ] as const;
 
+/** Full-bleed idle mesh — sits behind agent tabs so no opaque slab covers the field. */
+export function SovereignMeshField() {
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+      <SovereignCanvas state={IDLE_STATE} />
+    </div>
+  );
+}
+
 export function KiraWelcomeState() {
   const [hintIndex, setHintIndex] = useState(0);
 
@@ -30,21 +39,11 @@ export function KiraWelcomeState() {
   }, []);
 
   return (
-    <div className="relative flex h-full min-h-[440px] w-full flex-col overflow-hidden">
-      {/* Throne room — transparent, living inside the studio's ambient field */}
-      <div className="pointer-events-none absolute inset-0">
-        <SovereignCanvas state={IDLE_STATE} />
-      </div>
-
-      {/* Glass status strip */}
-      <div className="relative z-10 flex h-10 shrink-0 items-center justify-center border-b border-white/[0.06] bg-white/[0.03] backdrop-blur-md">
-        <span className="kira-glow-text font-mono text-[11px] uppercase tracking-[0.35em] text-purple-300">
-          Status · Sovereign Mesh Online
+    <div className="relative flex min-h-[min(52vh,28rem)] w-full flex-col">
+      <div className="flex flex-1 flex-col items-center justify-center px-6 pt-4 text-center">
+        <span className="kira-glow-text mb-4 inline-flex rounded-full px-3 py-1 font-mono text-[10px] uppercase tracking-[0.35em] text-purple-300">
+          Sovereign Mesh Online
         </span>
-      </div>
-
-      {/* Headline */}
-      <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-6 text-center">
         <h2 className="text-2xl font-semibold text-white md:text-3xl">
           Four minds. One brief. Verified output.
         </h2>
@@ -54,8 +53,7 @@ export function KiraWelcomeState() {
         </p>
       </div>
 
-      {/* Glass hint pill */}
-      <div className="relative z-10 mx-auto mb-8 w-full max-w-xl shrink-0 px-4">
+      <div className="mx-auto mb-4 w-full max-w-xl shrink-0 px-4">
         <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-3 shadow-2xl backdrop-blur-xl">
           <p
             key={hintIndex}

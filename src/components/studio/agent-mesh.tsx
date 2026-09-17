@@ -113,7 +113,7 @@ export function AgentMesh({
   }
 
   return (
-    <div className="relative z-10 isolate bg-bg">
+    <div className="relative z-10">
       {onPower && onToggleSeat ? (
         <div className="mb-2 flex flex-wrap items-center gap-2 text-[10px] tracking-wide text-subtle uppercase">
           <span className="text-muted">{activeCount}/4 agents</span>
@@ -175,7 +175,7 @@ export function AgentMesh({
               data-seat={seat}
               data-seat-state={ui}
               className={cn(
-                "seat-tab relative overflow-hidden rounded-xl bg-panel p-2 text-left shadow-[0_0_0_1px_rgb(255_255_255/0.06)] md:p-3",
+                "seat-tab relative overflow-hidden rounded-xl bg-panel/70 p-2 text-left shadow-[0_0_0_1px_rgb(255_255_255/0.06)] backdrop-blur-xl md:p-3",
                 "min-h-11",
                 !seatActive && "opacity-45",
                 live && "agent-working",
