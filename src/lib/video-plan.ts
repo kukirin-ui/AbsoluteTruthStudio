@@ -10,12 +10,14 @@ export type VideoShot = {
 
 export const VIDEO_LIMITS: Record<PlanId, { max: VideoLength; included: number; label: string }> = {
   free: { max: 5, included: 0, label: "Pro" },
+  starter: { max: 5, included: 0, label: "Pro" },
   pro: { max: 30, included: 6, label: "up to 30s" },
   premium: { max: 60, included: 9, label: "up to 60s" },
 };
 
 export const VIDEO_LENGTHS: Record<PlanId, VideoLength[]> = {
   free: [],
+  starter: [],
   pro: [10, 15, 20, 30],
   premium: [10, 15, 20, 30, 45, 60],
 };

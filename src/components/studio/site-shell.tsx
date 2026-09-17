@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { SiteNav, Wordmark, AmbientGlow } from "@/components/studio/chrome";
 import { Button } from "@/components/ui/button";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
@@ -15,6 +15,8 @@ export function SiteShell({
 }) {
   const { user, isPending } = useCurrentUserState();
   const isLoggedIn = !isPending && !!user;
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const onLogin = pathname === "/login";
 
   return (
     <div className="relative min-h-dvh bg-bg text-fg">
@@ -27,7 +29,7 @@ export function SiteShell({
           <Button asChild size="sm">
             <Link to="/">Open studio</Link>
           </Button>
-        ) : (
+        ) : onLogin ? null : (
           <Button asChild size="sm" variant="indigo">
             <Link to="/login">Sign in</Link>
           </Button>

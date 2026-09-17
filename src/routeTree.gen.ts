@@ -14,6 +14,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AgentsRouteImport } from './routes/agents'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as FaqRouteImport } from './routes/faq'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as PluginsRouteImport } from './routes/plugins'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -27,6 +28,7 @@ import { Route as ApiMeshRouteImport } from './routes/api/mesh'
 import { Route as ApiOwnerRouteImport } from './routes/api/owner'
 import { Route as ApiReferralsRouteImport } from './routes/api/referrals'
 import { Route as RCodeRouteImport } from './routes/r.$code'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiBillingEnsureCustomerRouteImport } from './routes/api/billing/ensure-customer'
 import { Route as ApiMeterIndexRouteImport } from './routes/api/meter/index'
 import { Route as ApiMeterDebitRouteImport } from './routes/api/meter/debit'
@@ -55,6 +57,11 @@ const ContactRoute = ContactRouteImport.update({
 const FaqRoute = FaqRouteImport.update({
   id: '/faq',
   path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PluginsRoute = PluginsRouteImport.update({
@@ -122,6 +129,11 @@ const RCodeRoute = RCodeRouteImport.update({
   path: '/r/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBillingEnsureCustomerRoute =
   ApiBillingEnsureCustomerRouteImport.update({
     id: '/api/billing/ensure-customer',
@@ -150,6 +162,7 @@ export interface FileRoutesByFullPath {
   '/agents': typeof AgentsRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
+  '/login': typeof LoginRoute
   '/plugins': typeof PluginsRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -163,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/api/owner': typeof ApiOwnerRoute
   '/api/referrals': typeof ApiReferralsRoute
   '/r/$code': typeof RCodeRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/billing/ensure-customer': typeof ApiBillingEnsureCustomerRoute
   '/api/meter/debit': typeof ApiMeterDebitRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
@@ -174,6 +188,7 @@ export interface FileRoutesByTo {
   '/agents': typeof AgentsRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
+  '/login': typeof LoginRoute
   '/plugins': typeof PluginsRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -187,6 +202,7 @@ export interface FileRoutesByTo {
   '/api/owner': typeof ApiOwnerRoute
   '/api/referrals': typeof ApiReferralsRoute
   '/r/$code': typeof RCodeRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/billing/ensure-customer': typeof ApiBillingEnsureCustomerRoute
   '/api/meter/debit': typeof ApiMeterDebitRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
@@ -199,6 +215,7 @@ export interface FileRoutesById {
   '/agents': typeof AgentsRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
+  '/login': typeof LoginRoute
   '/plugins': typeof PluginsRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
@@ -212,6 +229,7 @@ export interface FileRoutesById {
   '/api/owner': typeof ApiOwnerRoute
   '/api/referrals': typeof ApiReferralsRoute
   '/r/$code': typeof RCodeRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/billing/ensure-customer': typeof ApiBillingEnsureCustomerRoute
   '/api/meter/debit': typeof ApiMeterDebitRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
@@ -225,6 +243,7 @@ export interface FileRouteTypes {
     | '/agents'
     | '/contact'
     | '/faq'
+    | '/login'
     | '/plugins'
     | '/pricing'
     | '/privacy'
@@ -238,6 +257,7 @@ export interface FileRouteTypes {
     | '/api/owner'
     | '/api/referrals'
     | '/r/$code'
+    | '/api/auth/$'
     | '/api/billing/ensure-customer'
     | '/api/meter/debit'
     | '/api/stripe/webhook'
@@ -249,6 +269,7 @@ export interface FileRouteTypes {
     | '/agents'
     | '/contact'
     | '/faq'
+    | '/login'
     | '/plugins'
     | '/pricing'
     | '/privacy'
@@ -262,6 +283,7 @@ export interface FileRouteTypes {
     | '/api/owner'
     | '/api/referrals'
     | '/r/$code'
+    | '/api/auth/$'
     | '/api/billing/ensure-customer'
     | '/api/meter/debit'
     | '/api/stripe/webhook'
@@ -273,6 +295,7 @@ export interface FileRouteTypes {
     | '/agents'
     | '/contact'
     | '/faq'
+    | '/login'
     | '/plugins'
     | '/pricing'
     | '/privacy'
@@ -286,6 +309,7 @@ export interface FileRouteTypes {
     | '/api/owner'
     | '/api/referrals'
     | '/r/$code'
+    | '/api/auth/$'
     | '/api/billing/ensure-customer'
     | '/api/meter/debit'
     | '/api/stripe/webhook'
@@ -298,6 +322,7 @@ export interface RootRouteChildren {
   AgentsRoute: typeof AgentsRoute
   ContactRoute: typeof ContactRoute
   FaqRoute: typeof FaqRoute
+  LoginRoute: typeof LoginRoute
   PluginsRoute: typeof PluginsRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -311,6 +336,7 @@ export interface RootRouteChildren {
   ApiOwnerRoute: typeof ApiOwnerRoute
   ApiReferralsRoute: typeof ApiReferralsRoute
   RCodeRoute: typeof RCodeRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiBillingEnsureCustomerRoute: typeof ApiBillingEnsureCustomerRoute
   ApiMeterDebitRoute: typeof ApiMeterDebitRoute
   ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
@@ -352,6 +378,13 @@ declare module '@tanstack/react-router' {
       path: '/faq'
       fullPath: '/faq'
       preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/plugins': {
@@ -445,6 +478,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/billing/ensure-customer': {
       id: '/api/billing/ensure-customer'
       path: '/api/billing/ensure-customer'
@@ -482,6 +522,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgentsRoute: AgentsRoute,
   ContactRoute: ContactRoute,
   FaqRoute: FaqRoute,
+  LoginRoute: LoginRoute,
   PluginsRoute: PluginsRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
@@ -495,6 +536,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiOwnerRoute: ApiOwnerRoute,
   ApiReferralsRoute: ApiReferralsRoute,
   RCodeRoute: RCodeRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiBillingEnsureCustomerRoute: ApiBillingEnsureCustomerRoute,
   ApiMeterDebitRoute: ApiMeterDebitRoute,
   ApiStripeWebhookRoute: ApiStripeWebhookRoute,

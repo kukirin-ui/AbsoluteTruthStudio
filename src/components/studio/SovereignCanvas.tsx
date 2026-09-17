@@ -37,7 +37,7 @@ const WISPS = [
 ] as const;
 
 /** Studio design token → canvas rgb triplet. */
-function seatRgb(seat: TrinitySeat): string {
+function seatRgb(seat: TrinitySeat | "visual"): string {
   const m = SEAT_META[seat].glow.match(/rgb\((\d+)_(\d+)_(\d+)\)/);
   return m ? `${m[1]}, ${m[2]}, ${m[3]}` : "255, 255, 255";
 }

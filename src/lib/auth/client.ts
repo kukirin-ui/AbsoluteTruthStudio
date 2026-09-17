@@ -36,6 +36,8 @@ export function getBearerToken(): string | null {
 /**
  * Start sign-in with a native OAuth provider (`providerId` from
  * `AUTH_PROVIDERS`) — a plain redirect into that provider's own login page.
+ * After the provider round-trip, Better Auth sends the visitor to
+ * `callbackURL` (defaults to the studio home).
  */
 export async function signIn(
   providerId: "google" | "github",
@@ -49,12 +51,22 @@ export async function signIn(
   if (data?.url) window.location.href = data.url;
 }
 
+/** Google OAuth — always returns the visitor to the studio home. */
+export async function signInWithGoogle(): Promise<void> {
+  return signIn("google", { callbackURL: "/" });
+}
+
+/** GitHub OAuth — always returns the visitor to the studio home. */
+export async function signInWithGithub(): Promise<void> {
+  return signIn("github", { callbackURL: "/" });
+}
+
 /**
  * Sign out of this app's session, then redirect. Session is an HttpOnly
  * cookie only the server can clear — if the server call fails, this throws
  * rather than reporting a sign-out that did not actually happen.
  */
-export async function signOut(redirectTo = "/"): Promise<void> {
+export async function signOut(redirectTo = "/login"): Promise<void> {
   const { error } = await authClient.signOut();
   if (error) throw new Error(error.message ?? "Sign-out failed");
   window.location.href = redirectTo;

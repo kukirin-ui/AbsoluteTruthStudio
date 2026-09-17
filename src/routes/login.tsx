@@ -4,8 +4,7 @@ import { toast } from "sonner";
 import { SiteShell } from "@/components/studio/site-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { authClient } from "@/lib/auth/client";
-import { SignInButtons } from "@/lib/auth/gates";
+import { authClient, signIn } from "@/lib/auth/client";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 
 export const Route = createFileRoute("/login")({
@@ -20,6 +19,7 @@ function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [oauthBusy, setOauthBusy] = useState<"google" | "github" | null>(null);
 
   // Already signed in — nothing to do here.
   if (!isPending && user) {
@@ -47,6 +47,18 @@ function LoginPage() {
       setBusy(false);
     }
   }
+
+  async function onOAuth(provider: "google" | "github") {
+    setOauthBusy(provider);
+    try {
+      await signIn(provider, { callbackURL: "/" });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Sign-in failed. Try again.");
+      setOauthBusy(null);
+    }
+  }
+
+  const locked = busy || oauthBusy !== null;
 
   return (
     <SiteShell title="Sign in" kicker="Free to start">
@@ -92,7 +104,7 @@ function LoginPage() {
               required
             />
           </label>
-          <Button type="submit" className="w-full" disabled={busy}>
+          <Button type="submit" className="w-full" disabled={locked}>
             {busy ? "Working…" : mode === "signup" ? "Create account" : "Sign in"}
           </Button>
         </form>
@@ -103,8 +115,60 @@ function LoginPage() {
           <div className="h-px flex-1 bg-white/10" />
         </div>
 
-        <SignInButtons />
+        <div className="flex w-full flex-col gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            disabled={locked}
+            onClick={() => void onOAuth("google")}
+          >
+            <GoogleMark />
+            {oauthBusy === "google" ? "Redirecting…" : "Continue with Google"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            disabled={locked}
+            onClick={() => void onOAuth("github")}
+          >
+            <GitHubMark />
+            {oauthBusy === "github" ? "Redirecting…" : "Continue with GitHub"}
+          </Button>
+        </div>
       </div>
     </SiteShell>
+  );
+}
+
+function GoogleMark() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-4" aria-hidden="true">
+      <path
+        fill="#EA4335"
+        d="M12 10.2v3.6h5.1c-.2 1.2-.9 2.3-1.9 3l3.1 2.4c1.8-1.7 2.9-4.1 2.9-7 0-.7-.1-1.3-.2-1.9H12Z"
+      />
+      <path
+        fill="#34A853"
+        d="M6.6 14.3 5.5 15.1l-3.1 2.4C4.2 20.6 7.8 23 12 23c3 0 5.5-1 7.3-2.8l-3.1-2.4c-.9.6-2 1-3.2 1-2.5 0-4.6-1.7-5.4-4Z"
+      />
+      <path
+        fill="#4A90E2"
+        d="M2.4 7.5C1.5 9.2 1 11 1 13s.5 3.8 1.4 5.5l3.9-3c-.2-.6-.3-1.2-.3-1.9s.1-1.3.3-1.9l-3.9-3Z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M12 5.2c1.6 0 3.1.6 4.2 1.6l3.1-3.1C17.5 1.9 15 1 12 1 7.8 1 4.2 3.4 2.4 7.5l3.9 3c.8-2.3 2.9-4 5.4-4Z"
+      />
+    </svg>
+  );
+}
+
+function GitHubMark() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-4" fill="currentColor" aria-hidden="true">
+      <path d="M12 2C6.5 2 2 6.6 2 12.2c0 4.5 2.9 8.3 6.9 9.6.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.4-3.4-1.4-.4-1.1-1.1-1.4-1.1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.6 2.4 1.1 3 .9.1-.7.4-1.1.6-1.4-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.7 1a9.3 9.3 0 0 1 5 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.3 4.7-4.6 5 .4.3.7 1 .7 2v2.9c0 .3.2.6.7.5 4-1.3 6.9-5.1 6.9-9.6C22 6.6 17.5 2 12 2Z" />
+    </svg>
   );
 }
