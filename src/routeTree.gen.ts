@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AgentsRouteImport } from './routes/agents'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as DashboardCreditsRouteImport } from './routes/dashboard.credits'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PluginsRouteImport } from './routes/plugins'
@@ -52,6 +53,11 @@ const AgentsRoute = AgentsRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardCreditsRoute = DashboardCreditsRouteImport.update({
+  id: '/dashboard/credits',
+  path: '/dashboard/credits',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaqRoute = FaqRouteImport.update({
@@ -161,6 +167,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/agents': typeof AgentsRoute
   '/contact': typeof ContactRoute
+  '/dashboard/credits': typeof DashboardCreditsRoute
   '/faq': typeof FaqRoute
   '/login': typeof LoginRoute
   '/plugins': typeof PluginsRoute
@@ -187,6 +194,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/agents': typeof AgentsRoute
   '/contact': typeof ContactRoute
+  '/dashboard/credits': typeof DashboardCreditsRoute
   '/faq': typeof FaqRoute
   '/login': typeof LoginRoute
   '/plugins': typeof PluginsRoute
@@ -214,6 +222,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/agents': typeof AgentsRoute
   '/contact': typeof ContactRoute
+  '/dashboard/credits': typeof DashboardCreditsRoute
   '/faq': typeof FaqRoute
   '/login': typeof LoginRoute
   '/plugins': typeof PluginsRoute
@@ -242,6 +251,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/agents'
     | '/contact'
+    | '/dashboard/credits'
     | '/faq'
     | '/login'
     | '/plugins'
@@ -268,6 +278,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/agents'
     | '/contact'
+    | '/dashboard/credits'
     | '/faq'
     | '/login'
     | '/plugins'
@@ -294,6 +305,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/agents'
     | '/contact'
+    | '/dashboard/credits'
     | '/faq'
     | '/login'
     | '/plugins'
@@ -321,6 +333,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AgentsRoute: typeof AgentsRoute
   ContactRoute: typeof ContactRoute
+  DashboardCreditsRoute: typeof DashboardCreditsRoute
   FaqRoute: typeof FaqRoute
   LoginRoute: typeof LoginRoute
   PluginsRoute: typeof PluginsRoute
@@ -371,6 +384,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/credits': {
+      id: '/dashboard/credits'
+      path: '/dashboard/credits'
+      fullPath: '/dashboard/credits'
+      preLoaderRoute: typeof DashboardCreditsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/faq': {
@@ -521,6 +541,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AgentsRoute: AgentsRoute,
   ContactRoute: ContactRoute,
+  DashboardCreditsRoute: DashboardCreditsRoute,
   FaqRoute: FaqRoute,
   LoginRoute: LoginRoute,
   PluginsRoute: PluginsRoute,
