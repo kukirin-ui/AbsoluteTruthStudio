@@ -21,6 +21,7 @@ export type TopUpGrantResult = {
   subscriptionGrant: number;
   totalCredits: number;
   centsGranted: number;
+  walletId: string;
   stripeSessionId: string;
   alreadySettled?: boolean;
 };
@@ -43,6 +44,7 @@ export async function grantTopUpFromCheckout(input: {
   creditsToGrant: number;
   amountEuros: number;
   markupTier: number;
+  apiBudgetCost?: number;
 }): Promise<TopUpGrantResult> {
   const { getSql } = await import("@/lib/db");
   const { ensureFreeEntitlement } = await import(
@@ -67,13 +69,14 @@ export async function grantTopUpFromCheckout(input: {
       subscriptionGrant: grantAmount,
       totalCredits,
       centsGranted: creditsToWalletCents(totalCredits),
+      walletId: input.userId,
       stripeSessionId: input.stripeSessionId,
       alreadySettled: true,
     };
   }
 
-  const wallet = await sql<{ credit_cents: number }>`
-    select credit_cents from credit_wallets
+  const wallet = await sql<{ user_id: string; credit_cents: number }>`
+    select user_id, credit_cents from credit_wallets
     where user_id = ${input.userId}
     limit 1
   `;
@@ -86,11 +89,15 @@ export async function grantTopUpFromCheckout(input: {
   const grantCents = creditsToWalletCents(grantAmount);
   const totalCredits = input.creditsToGrant + grantAmount;
   const totalCents = topUpCents + grantCents;
+  const apiBudgetCost =
+    input.apiBudgetCost ??
+    (input.markupTier > 0 ? input.amountEuros / input.markupTier : 0);
 
   const topUpMeta = JSON.stringify({
     source: "top_up_payment",
     amountEuros: input.amountEuros.toString(),
     markupTier: input.markupTier.toString(),
+    apiBudgetCost: apiBudgetCost.toString(),
     stripeSessionId: input.stripeSessionId,
     creditsAwarded: input.creditsToGrant,
   });
@@ -149,6 +156,7 @@ export async function grantTopUpFromCheckout(input: {
     subscriptionGrant: grantAmount,
     totalCredits,
     centsGranted: totalCents,
+    walletId: wallet[0]!.user_id,
     stripeSessionId: input.stripeSessionId,
   };
 }
@@ -202,7 +210,7 @@ export const handleStripeWebhook = createServerFn({ method: "POST" })
         : null;
     const grant = parseTopUpMetadata(metadata);
     if (!grant) {
-      return { received: true, processed: false as const };
+      throw new Error("Invalid session metadata");
     }
 
     const sessionId = asString(session.id) ?? parsed.id ?? "";
@@ -213,6 +221,7 @@ export const handleStripeWebhook = createServerFn({ method: "POST" })
       creditsToGrant: grant.creditsToGrant,
       amountEuros: grant.amountEuros,
       markupTier: grant.markupTier,
+      apiBudgetCost: grant.apiBudgetCost,
     });
 
     return {

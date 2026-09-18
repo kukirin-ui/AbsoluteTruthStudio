@@ -30,24 +30,28 @@ describe("getMarkupTier", () => {
 });
 
 describe("calculateCredits", () => {
-  it("awards 35,000 credits for €10 at 3.5×", () => {
+  it("awards 10,000 credits for €10 and splits API budget at 3.5×", () => {
     const result = calculateCredits(10);
-    assert.equal(result.creditsAwarded, 35000);
+    assert.equal(result.creditsAwarded, 10000);
     assert.equal(result.markupTier, 3.5);
     assert.equal(result.margin, 3.5);
-    assert.equal(result.costPerCredit, 10 / 35000);
+    assert.equal(result.apiBudgetCost, 10 / 3.5);
+    assert.equal(result.profitMargin, 10 - 10 / 3.5);
   });
 
-  it("awards 150,000 credits for €50 at 3.0×", () => {
+  it("awards 50,000 credits for €50 at 3.0×", () => {
     const result = calculateCredits(50);
-    assert.equal(result.creditsAwarded, 150000);
+    assert.equal(result.creditsAwarded, 50000);
     assert.equal(result.markupTier, 3.0);
+    assert.equal(result.apiBudgetCost, 50 / 3.0);
   });
 
-  it("awards 250,000 credits for €100 at 2.5×", () => {
+  it("awards 100,000 credits for €100 at 2.5×", () => {
     const result = calculateCredits(100);
-    assert.equal(result.creditsAwarded, 250000);
+    assert.equal(result.creditsAwarded, 100000);
     assert.equal(result.markupTier, 2.5);
+    assert.equal(result.apiBudgetCost, 100 / 2.5);
+    assert.equal(result.profitMargin, 100 - 40);
   });
 
   it("rejects amounts under €10", () => {
@@ -72,14 +76,14 @@ describe("wallet conversion", () => {
     assert.equal(creditsToEuroDisplay(1000), 1);
   });
 
-  it("maps a €10 top-up (35k credits) to 3,500 wallet cents", () => {
-    assert.equal(creditsToWalletCents(35000), 3500);
+  it("maps a €10 top-up (10k credits) to 1,000 wallet cents", () => {
+    assert.equal(creditsToWalletCents(10000), 1000);
   });
 });
 
 describe("calculateSubscriptionGrant", () => {
   it("awards 10% floored", () => {
-    assert.equal(calculateSubscriptionGrant(35000), 3500);
+    assert.equal(calculateSubscriptionGrant(10000), 1000);
     assert.equal(calculateSubscriptionGrant(15), 1);
     assert.equal(calculateSubscriptionGrant(9), 0);
   });
@@ -87,9 +91,9 @@ describe("calculateSubscriptionGrant", () => {
 
 describe("estimateTurnsForAmount", () => {
   it("divides awarded credits by the ballpark cost-per-turn", () => {
-    assert.equal(estimateTurnsForAmount(10, "Budget"), Math.floor(35000 / 200));
-    assert.equal(estimateTurnsForAmount(10, "Balanced"), Math.floor(35000 / 435));
-    assert.equal(estimateTurnsForAmount(10, "Flagship"), Math.floor(35000 / 775));
+    assert.equal(estimateTurnsForAmount(10, "Budget"), Math.floor(10000 / 200));
+    assert.equal(estimateTurnsForAmount(10, "Balanced"), Math.floor(10000 / 435));
+    assert.equal(estimateTurnsForAmount(10, "Flagship"), Math.floor(10000 / 775));
   });
 });
 
@@ -104,8 +108,9 @@ describe("parseTopUpMetadata", () => {
     assert.deepEqual(grant, {
       userId: "user_1",
       amountEuros: 10,
-      creditsToGrant: 35000,
+      creditsToGrant: 10000,
       markupTier: 3.5,
+      apiBudgetCost: 10 / 3.5,
     });
   });
 
@@ -115,7 +120,8 @@ describe("parseTopUpMetadata", () => {
       amountEuros: "100",
     });
     assert.equal(grant?.userId, "user_2");
-    assert.equal(grant?.creditsToGrant, 250000);
+    assert.equal(grant?.creditsToGrant, 100000);
+    assert.equal(grant?.apiBudgetCost, 40);
   });
 
   it("returns null without a user id or grant", () => {
