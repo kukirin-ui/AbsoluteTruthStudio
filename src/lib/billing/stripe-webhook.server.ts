@@ -398,6 +398,7 @@ export async function settleStripeEvent(
           creditsToGrant: topUp.creditsToGrant,
           amountEuros: topUp.amountEuros,
           markupTier: topUp.markupTier,
+          apiBudgetCost: topUp.apiBudgetCost,
         });
         return { ok: true };
       }

@@ -3,6 +3,7 @@
  * Integrated into orchestrator mesh to degrade gracefully at €0 balance.
  *
  * Model ids are catalog ids from src/lib/engine.ts (not legacy aliases).
+ * DB access is lazy so this module stays client-safe for banner helpers.
  */
 
 export type ModelTier = "Budget" | "Balanced" | "Flagship";
@@ -22,9 +23,9 @@ const MODEL_MAP: Record<ModelTier, string> = {
   Flagship: "gpt-6-astra",
 };
 
-const FALLBACK_MODEL = "qwen3.7-flash"; // Budget tier on zero balance
+const FALLBACK_MODEL = "qwen3.7-flash";
 const ZERO_BALANCE_BANNER =
-  "Your credits are empty. Switched to Budget mode. Top up for full power.";
+  "💳 Your credits are empty. Switched to Budget mode. Top up for full power.";
 
 export { MODEL_MAP, FALLBACK_MODEL };
 
@@ -97,13 +98,6 @@ export const resolveAgentModel = async (
 }> => {
   void prompt;
   const resolution = await determineActiveModel(userId, userTierPreference);
-
-  if (resolution.isZeroBalanceMode) {
-    console.warn(
-      `[ZERO-BALANCE] User ${userId} at zero balance, falling back to Budget model`,
-    );
-  }
-
   return {
     modelToUse: resolution.primary,
     fallbackModel: resolution.fallback,
@@ -115,18 +109,16 @@ export const resolveAgentModel = async (
  * Helper: Format banner for UI display.
  */
 export const formatBanner = (resolution: ModelResolution): string | null => {
-  if (resolution.banner) {
-    if (resolution.isZeroBalanceMode) {
-      return `${resolution.banner} [Credits: ${resolution.creditsRemaining ?? 0}]`;
+  if (!resolution.banner) {
+    if (resolution.creditsRemaining && resolution.creditsRemaining < 5000) {
+      return `⚠️ Low balance: ${resolution.creditsRemaining.toLocaleString("en-US")} credits remaining. Consider topping up.`;
     }
-    return resolution.banner;
+    return null;
   }
-
-  if (resolution.creditsRemaining && resolution.creditsRemaining < 5000) {
-    return `Low balance: ${resolution.creditsRemaining.toLocaleString("en-US")} credits remaining. Consider topping up.`;
+  if (resolution.isZeroBalanceMode) {
+    return `${resolution.banner} [Credits: ${resolution.creditsRemaining ?? 0}]`;
   }
-
-  return null;
+  return resolution.banner;
 };
 
 /** Map a studio plan/engine tier onto the Budget / Balanced / Flagship ladder. */

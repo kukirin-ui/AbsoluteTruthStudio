@@ -35,9 +35,8 @@ function CreditsPage() {
         </p>
       ) : null}
       <p>
-        Buy studio credits to power the four-seat mesh. Each top-up is priced on
-        its own: €10–29 at 3.5×, €30–99 at 3.0×, and €100+ at 2.5×. Larger
-        amounts unlock the better rate.
+        Buy studio credits to power the four-seat mesh. Every euro buys 1,000
+        credits (1000 credits = €1). Minimum top-up is €10.
       </p>
       <div className="flex flex-wrap gap-2">
         <BuyCreditsButton />

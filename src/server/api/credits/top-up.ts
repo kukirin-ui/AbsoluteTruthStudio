@@ -55,6 +55,7 @@ export const createTopUpCheckout = createServerFn({ method: "POST" })
       `;
       email = rows[0]?.email ?? null;
     }
+    if (!email) throw new Error("User email not found");
     await ensureFreeEntitlement(userId);
 
     const key = process.env.STRIPE_SECRET_KEY?.trim();
@@ -68,7 +69,6 @@ export const createTopUpCheckout = createServerFn({ method: "POST" })
       customerId = ensured.stripeCustomerId;
     } catch (err) {
       if (err instanceof StripeNotConfiguredError) throw err;
-      // Fall through to customer_email if Customer create failed.
       customerId = null;
     }
 
@@ -76,14 +76,8 @@ export const createTopUpCheckout = createServerFn({ method: "POST" })
     const body = new URLSearchParams();
     body.set("mode", "payment");
     body.append("payment_method_types[0]", "card");
-    body.set(
-      "success_url",
-      `${appUrl}/dashboard/credits?success=true`,
-    );
-    body.set(
-      "cancel_url",
-      `${appUrl}/dashboard/credits?cancelled=true`,
-    );
+    body.set("success_url", `${appUrl}/dashboard/credits?success=true`);
+    body.set("cancel_url", `${appUrl}/dashboard/credits?cancelled=true`);
     body.set("line_items[0][quantity]", "1");
     body.set("line_items[0][price_data][currency]", "eur");
     body.set(
@@ -96,11 +90,11 @@ export const createTopUpCheckout = createServerFn({ method: "POST" })
     );
     body.set(
       "line_items[0][price_data][product_data][description]",
-      `Absolute Truth Studio Credits (${amountEuros}€ at ${pricing.markupTier}× rate)`,
+      "Absolute Truth Studio Credits",
     );
     if (customerId) {
       body.set("customer", customerId);
-    } else if (email) {
+    } else {
       body.set("customer_email", email);
     }
     body.set("metadata[kind]", "credit_topup");
@@ -109,6 +103,7 @@ export const createTopUpCheckout = createServerFn({ method: "POST" })
     body.set("metadata[amountEuros]", amountEuros.toString());
     body.set("metadata[creditsToGrant]", pricing.creditsAwarded.toString());
     body.set("metadata[markupTier]", pricing.markupTier.toString());
+    body.set("metadata[apiBudgetCost]", pricing.apiBudgetCost.toFixed(2));
     body.set("client_reference_id", userId);
 
     const { randomUUID } = await import("node:crypto");
@@ -153,6 +148,5 @@ export const createTopUpCheckout = createServerFn({ method: "POST" })
       checkoutUrl: checkout.url,
       sessionId: checkout.id,
       creditsPreview: pricing.creditsAwarded,
-      markupTier: pricing.markupTier,
     };
   });
