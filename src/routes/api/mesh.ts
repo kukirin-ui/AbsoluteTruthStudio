@@ -74,6 +74,16 @@ function jsonError(
   return Response.json({ error, code, details }, { status });
 }
 
+function meshStreamHeaders(banner: string | null): HeadersInit {
+  const headers: Record<string, string> = {
+    "Content-Type": "text/event-stream; charset=utf-8",
+    "Cache-Control": "no-cache, no-transform",
+    Connection: "keep-alive",
+  };
+  if (banner) headers["X-Studio-Banner"] = encodeURIComponent(banner);
+  return headers;
+}
+
 /**
  * Re-encode an Anthropic Messages SSE stream as the OpenAI-style
  * `data: {choices:[{delta:{content}}]}` stream the studio frontend already
@@ -182,6 +192,12 @@ export const Route = createFileRoute("/api/mesh")({
 
         // Funded by credits OR the user's own BYOK key for the lead provider.
         // BYOK only changes who pays — the plan ceiling still clamps the model.
+        const { walletCentsToCredits } = await import("@/lib/credit-pricing");
+        const {
+          formatBanner,
+          preferenceFromEngineTier,
+          resolutionFromCredits,
+        } = await import("@/lib/orchestrator-fallback");
         let creditCents = 0;
         if (!ownerMode) {
           try {
@@ -286,6 +302,18 @@ export const Route = createFileRoute("/api/mesh")({
             );
           }
         }
+
+        const modelRes = resolutionFromCredits(
+          walletCentsToCredits(creditCents),
+          preferenceFromEngineTier(typeof body.tier === "string" ? body.tier : undefined),
+        );
+        // Credits path (owner keys): empty wallet already 402'd. BYOK at €0
+        // keeps the user's lead provider so their key still matches the model.
+        // Owner preview skips the banner — funding is not metered there.
+        if (!ownerMode && modelRes.isZeroBalanceMode && creditCents > 0) {
+          resolvedModelId = modelRes.primary;
+        }
+        const studioBanner = ownerMode ? null : formatBanner(modelRes);
 
         const duration =
           typeof body.duration === "number" && body.duration > 0 ? Math.min(60, Math.round(body.duration)) : undefined;
@@ -433,11 +461,7 @@ export const Route = createFileRoute("/api/mesh")({
           const retry = await callUpstream(xaiFallback()).catch(() => null);
           if (retry && retry.ok && retry.body) {
             return new Response(retry.body, {
-              headers: {
-                "Content-Type": "text/event-stream; charset=utf-8",
-                "Cache-Control": "no-cache, no-transform",
-                Connection: "keep-alive",
-              },
+              headers: meshStreamHeaders(studioBanner),
             });
           }
         }
@@ -464,11 +488,7 @@ export const Route = createFileRoute("/api/mesh")({
             : upstream.body;
 
         return new Response(outBody, {
-          headers: {
-            "Content-Type": "text/event-stream; charset=utf-8",
-            "Cache-Control": "no-cache, no-transform",
-            Connection: "keep-alive",
-          },
+          headers: meshStreamHeaders(studioBanner),
         });
       },
     },

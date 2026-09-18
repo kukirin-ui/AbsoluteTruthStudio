@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { PLANS, initiateCheckout, planRank, type BillingMethod } from "@/lib/billing";
+import { BuyCreditsButton } from "@/components/BuyCreditsModal";
 import { readOwner, unlockOwner, writeOwner } from "@/lib/owner";
 import { signOut } from "@/lib/auth/client";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
@@ -412,6 +413,9 @@ export function BillingDrawer({
             ? "Owner mode — every tier and plugin is unlocked for you. Visitors start on the basic tier and unlock Pro or Premium through Stripe. Their own keys (BYOK) pay for calls but do not raise the plan ceiling."
             : "Pro and Premium are monthly subscriptions billed through Stripe. Tap checkout, then Activate on this device. You can also bring your own keys (BYOK) on any plan — a key pays for the call, it does not raise the model ceiling."}
         </p>
+        <div className="mb-5">
+          <BuyCreditsButton />
+        </div>
         {owner ? null : (
           <form
             className="mb-4 flex gap-2"

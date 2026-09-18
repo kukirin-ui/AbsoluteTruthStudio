@@ -292,7 +292,7 @@ export async function settleStripeEvent(
     const clientRef = asString(obj.client_reference_id);
     if (clientRef) return clientRef;
     const meta = obj.metadata as Record<string, unknown> | undefined;
-    return asString(meta?.user_id);
+    return asString(meta?.user_id) ?? asString(meta?.userId);
   };
 
   const grantPaidPlan = async (input: {
@@ -382,6 +382,27 @@ export async function settleStripeEvent(
 
     const obj = (event.data?.object ?? {}) as Record<string, unknown>;
     const customerId = extractCustomerId(obj);
+
+    if (event.type === "checkout.session.completed") {
+      const meta = obj.metadata as Record<string, unknown> | undefined;
+      const { parseTopUpMetadata } = await import("@/lib/credit-pricing");
+      const topUp = parseTopUpMetadata(meta);
+      if (topUp) {
+        const { grantTopUpFromCheckout } = await import(
+          "@/server/api/webhooks/stripe"
+        );
+        await grantTopUpFromCheckout({
+          stripeEventId: event.id,
+          stripeSessionId: asString(obj.id) ?? event.id,
+          userId: topUp.userId,
+          creditsToGrant: topUp.creditsToGrant,
+          amountEuros: topUp.amountEuros,
+          markupTier: topUp.markupTier,
+        });
+        return { ok: true };
+      }
+    }
+
     const userId = await resolveUserId(obj, customerId);
 
     if (!userId) {

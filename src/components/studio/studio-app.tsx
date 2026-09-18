@@ -38,6 +38,9 @@ import { fallbackAppFiles, fallbackConsensus, productTitle } from "@/lib/fallbac
 import { ByokSettingsDrawer } from "@/components/studio/byok-settings";
 import { listByokCredentials, type ByokCredentialMeta } from "@/lib/byok";
 import { fetchMeter, formatCreditCents } from "@/lib/meter-client";
+import { BuyCreditsModal } from "@/components/BuyCreditsModal";
+import { walletCentsToCredits } from "@/lib/credit-pricing";
+import { formatBanner, resolutionFromCredits } from "@/lib/orchestrator-fallback";
 import {
   isMeshPaymentRequiredError,
   parseMesh,
@@ -88,6 +91,7 @@ export function StudioApp({
   const [userFiles, setUserFiles] = useState<UserFile[]>([]);
   const [codeOpen, setCodeOpen] = useState(false);
   const [billingOpen, setBillingOpen] = useState(false);
+  const [buyCreditsOpen, setBuyCreditsOpen] = useState(false);
   const [pluginsOpen, setPluginsOpen] = useState(false);
   const [memoryOpen, setMemoryOpen] = useState(false);
   const [byokOpen, setByokOpen] = useState(false);
@@ -124,6 +128,11 @@ export function StudioApp({
     const fromProject = store.projects.find((p) => p.conversationId === convo?.id)?.media;
     return fromMsg ?? fromProject;
   }, [messages, store.projects, convo?.id]);
+
+  const creditBanner =
+    liveCreditCents != null
+      ? formatBanner(resolutionFromCredits(walletCentsToCredits(liveCreditCents)))
+      : null;
 
   const draftKind = inferDeliverable(draft);
 
@@ -930,6 +939,14 @@ export function StudioApp({
         onOpenMemory={() => setMemoryOpen(true)}
         leftSlot={<NavDrawer>{library}</NavDrawer>}
       />
+      {creditBanner ? (
+        <div className="relative z-20 flex items-center justify-between gap-3 border-b border-border bg-elevated/80 px-4 py-2 text-xs text-fg backdrop-blur-md">
+          <p>{creditBanner}</p>
+          <Button size="sm" variant="emerald" onClick={() => setBuyCreditsOpen(true)}>
+            Top up
+          </Button>
+        </div>
+      ) : null}
 
       <div className="relative z-10 flex min-h-0 flex-1">
         <aside className="hidden w-72 shrink-0 border-r border-border p-4 lg:block">
@@ -1052,7 +1069,7 @@ export function StudioApp({
                           <Button
                             size="sm"
                             onClick={() => {
-                              setBillingOpen(true);
+                              setBuyCreditsOpen(true);
                             }}
                           >
                             Buy credits
@@ -1189,6 +1206,10 @@ export function StudioApp({
           store.setPlan(next);
           store.clearFailedMedia();
         }}
+      />
+      <BuyCreditsModal
+        isOpen={buyCreditsOpen}
+        onClose={() => setBuyCreditsOpen(false)}
       />
       <PluginDrawer
         open={pluginsOpen}
